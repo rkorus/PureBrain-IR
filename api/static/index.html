@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PureBrain IR — Investor Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 24px 32px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #fff;
+            font-weight: 600;
+        }
+        .header h1 span { color: #6366f1; }
+        .header p { color: #888; font-size: 14px; margin-top: 4px; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        /* Filters */
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+            background: #12121a;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #1e1e30;
+        }
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        .search-btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            align-self: end;
+        }
+        .search-btn:hover { background: #5254cc; }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #888;
+        }
+        .stats-bar strong { color: #6366f1; }
+
+        /* Results */
+        .results { display: flex; flex-direction: column; gap: 12px; }
+        .firm-card {
+            background: #12121a;
+            border: 1px solid #1e1e30;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .firm-card:hover { border-color: #6366f1; }
+        .firm-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .firm-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .firm-aum {
+            font-size: 20px;
+            font-weight: 700;
+            color: #6366f1;
+            white-space: nowrap;
+        }
+        .firm-meta {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #999;
+        }
+        .firm-meta .label { color: #666; }
+        .firm-meta a { color: #6366f1; text-decoration: none; }
+        .firm-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .tag {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #aaa;
+        }
+        .contact-row {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #1e1e30;
+            font-size: 14px;
+        }
+        .contact-row .phone { color: #10b981; font-weight: 500; }
+
+        /* Detail modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 60px;
+            overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #12121a;
+            border: 1px solid #2a2a4a;
+            border-radius: 16px;
+            max-width: 700px;
+            width: 90%;
+            padding: 32px;
+            margin-bottom: 60px;
+        }
+        .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .modal h2 { font-size: 22px; color: #fff; margin-bottom: 4px; }
+        .modal .subtitle { color: #888; font-size: 14px; margin-bottom: 20px; }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .detail-item label {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .detail-item .value {
+            font-size: 15px;
+            color: #e0e0e0;
+            margin-top: 2px;
+        }
+        .detail-item .value.highlight { color: #6366f1; font-weight: 600; }
+        .detail-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #1e1e30;
+        }
+        .detail-section h3 {
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        .pagination button {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .pagination button:disabled { opacity: 0.3; cursor: default; }
+        .pagination button.active { background: #6366f1; border-color: #6366f1; }
+
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .empty { text-align: center; padding: 60px; color: #666; }
+
+        /* Fit Score */
+        .fit-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: #12121a;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 1px solid #1e1e30;
+        }
+        .fit-toggle label { color: #e0e0e0; font-weight: 600; font-size: 14px; }
+        .fit-toggle .toggle-switch {
+            position: relative;
+            width: 44px; height: 24px;
+            background: #2a2a4a;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .fit-toggle .toggle-switch.active { background: #6366f1; }
+        .fit-toggle .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 18px; height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .fit-toggle .toggle-switch.active::after { transform: translateX(20px); }
+        .fit-context {
+            display: none;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #1e1e30;
+        }
+        .fit-context.active { display: grid; }
+        .fit-context input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+        .fit-context input:focus { outline: none; border-color: #6366f1; }
+        .fit-context label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .fit-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .fit-badge.high { background: #064e3b; color: #10b981; }
+        .fit-badge.medium { background: #3b3600; color: #eab308; }
+        .fit-badge.low { background: #3b1c00; color: #f97316; }
+        .fit-badge .conf { font-size: 10px; font-weight: 400; opacity: 0.7; }
+        .fit-breakdown {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #888;
+        }
+        .fit-breakdown .dim {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .fit-breakdown .dim-bar {
+            width: 40px;
+            height: 4px;
+            background: #2a2a4a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .fit-breakdown .dim-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: #6366f1;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #1e1e30;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #888;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-btn:hover { color: #ccc; }
+        .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Peer Analysis */
+        .peer-filters {
+            background: #12121a;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #1e1e30;
+            margin-bottom: 24px;
+        }
+        .peer-filters-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 16px;
+            align-items: end;
+        }
+        .peer-filters-row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 16px;
+            margin-top: 16px;
+            align-items: end;
+        }
+        .peer-result-card {
+            background: #12121a;
+            border: 1px solid #1e1e30;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+        .peer-result-card:hover { border-color: #6366f1; }
+        .peer-rank {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2a2a4a;
+            min-width: 40px;
+        }
+        .peer-score-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .peer-score-track {
+            flex: 1;
+            height: 6px;
+            background: #1e1e30;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .peer-score-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .peer-score-fill.high { background: #10b981; }
+        .peer-score-fill.medium { background: #eab308; }
+        .peer-score-fill.low { background: #f97316; }
+        .peer-tickers-held {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .peer-ticker-tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: monospace;
+        }
+        .peer-ticker-tag.held { background: #064e3b; color: #10b981; }
+        .peer-ticker-tag.missing { background: #1e1e30; color: #555; }
+        .peer-meta-row {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+        }
+        .peer-meta-row strong { color: #ccc; }
+        .peer-score-dims {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+        .peer-dim {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #888;
+        }
+        .peer-dim-bar {
+            width: 32px;
+            height: 4px;
+            background: #2a2a4a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .peer-dim-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: #6366f1;
+        }
+        .peer-summary {
+            display: flex;
+            gap: 24px;
+            padding: 16px 20px;
+            background: #12121a;
+            border: 1px solid #1e1e30;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #888;
+        }
+        .peer-summary strong { color: #6366f1; font-size: 16px; }
+
+        /* Risk badges */
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .risk-badge.clean { background: #064e3b; color: #10b981; }
+        .risk-badge.noted { background: #3b3600; color: #eab308; }
+        .risk-badge.elevated { background: #3b1c00; color: #f97316; }
+        .risk-badge.high { background: #450a0a; color: #ef4444; }
+
+        /* Contact search */
+        .contact-search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: #12121a;
+            border: 1px solid #1e1e30;
+            border-radius: 10px;
+        }
+        .contact-search-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+        .contact-search-bar input:focus { outline: none; border-color: #6366f1; }
+        .contact-search-bar select {
+            padding: 8px 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+
+        /* Outreach UI */
+        .outreach-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+        .outreach-btn:hover { opacity: 0.9; }
+        .outreach-btn:disabled { opacity: 0.5; cursor: default; }
+        .outreach-panel {
+            margin-top: 16px;
+            padding: 16px;
+            background: #0d0d14;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+        }
+        .template-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .template-chip {
+            padding: 6px 14px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 20px;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .template-chip:hover { border-color: #6366f1; color: #ccc; }
+        .template-chip.active { background: #6366f1; border-color: #6366f1; color: white; }
+        .draft-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: 14px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 13px;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        .draft-editor:focus { outline: none; border-color: #6366f1; }
+        .draft-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .draft-meta input {
+            flex: 1;
+            padding: 8px 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+        .draft-meta input:focus { outline: none; border-color: #6366f1; }
+        .draft-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+        .draft-actions button {
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-secondary { background: #1a1a2e; color: #888; border: 1px solid #2a2a4a !important; }
+        .btn-secondary:hover { color: #ccc; border-color: #6366f1 !important; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #5254cc; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Pure<span>Brain</span> IR</h1>
+        <p>AI Investor Intelligence — 39,040 SEC-registered firms | 108 13F filers | 384K+ holdings | Allocator Search</p>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('search')">Firm Search</button>
+            <button class="tab-btn" onclick="switchTab('peers')">Peer Analysis</button>
+            <button class="tab-btn" onclick="switchTab('contacts')">Contact Search</button>
+            <button class="tab-btn" onclick="switchTab('outreach')">Outreach</button>
+            <button class="tab-btn" onclick="switchTab('allocators')">Allocator Search</button>
+        </div>
+
+        <!-- TAB 1: Firm Search -->
+        <div class="tab-panel active" id="tab-search">
+        <div class="filters" id="filters">
+            <div class="filter-group" style="grid-column: 1 / -1;">
+                <label>Search by Name</label>
+                <input type="text" id="f-query" placeholder="e.g. Vanguard, BlackRock, Fidelity..." onkeydown="if(event.key==='Enter')doSearch(0)">
+            </div>
+            <div class="filter-group">
+                <label>State</label>
+                <select id="f-state"><option value="">Any State</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Firm Type</label>
+                <select id="f-firmtype">
+                    <option value="all">All Firms</option>
+                    <option value="ia">Investment Advisers (IA)</option>
+                    <option value="era">Exempt Reporting Advisers (ERA)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Client Type</label>
+                <select id="f-client">
+                    <option value="">Any Type</option>
+                    <option value="individual">Individual (non-HNW)</option>
+                    <option value="hnw">High Net Worth</option>
+                    <option value="corporate">Corporate</option>
+                    <option value="pension">Pension</option>
+                    <option value="pooled">Pooled Vehicle</option>
+                    <option value="charity">Charity</option>
+                    <option value="insurance">Insurance</option>
+                    <option value="sovereign">Sovereign Wealth</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>AUM Range</label>
+                <select id="f-aum">
+                    <option value="">Any AUM</option>
+                    <option value="0-25000000">Under $25M</option>
+                    <option value="25000000-100000000">$25M - $100M</option>
+                    <option value="100000000-500000000">$100M - $500M</option>
+                    <option value="500000000-1000000000">$500M - $1B</option>
+                    <option value="1000000000-10000000000">$1B - $10B</option>
+                    <option value="10000000000-100000000000">$10B - $100B</option>
+                    <option value="100000000000-">$100B+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Service</label>
+                <select id="f-service">
+                    <option value="">Any Service</option>
+                    <option value="financial_planning">Financial Planning</option>
+                    <option value="portfolio_indiv">Portfolio Mgmt (Individual)</option>
+                    <option value="portfolio_biz">Portfolio Mgmt (Business)</option>
+                    <option value="pension_consulting">Pension Consulting</option>
+                    <option value="adviser_selection">Adviser Selection</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Sort By</label>
+                <select id="f-sort">
+                    <option value="aum_total-DESC">AUM (High to Low)</option>
+                    <option value="aum_total-ASC">AUM (Low to High)</option>
+                    <option value="fit_score-DESC">AI Fit Score (High to Low)</option>
+                    <option value="legal_name-ASC">Name (A-Z)</option>
+                    <option value="legal_name-DESC">Name (Z-A)</option>
+                    <option value="filing_date-DESC">Recently Filed</option>
+                    <option value="state-ASC">State (A-Z)</option>
+                </select>
+            </div>
+            <button class="search-btn" onclick="doSearch(0)">Search</button>
+        </div>
+
+        <div class="fit-toggle" id="fit-panel">
+            <div class="toggle-switch" id="fit-toggle" onclick="toggleFitScore()"></div>
+            <label>AI Fit Score</label>
+            <span style="font-size:12px;color:#666;">Score investors by 13F behavioral alignment</span>
+            <div class="fit-context" id="fit-context">
+                <div>
+                    <label>Target Tickers</label>
+                    <input type="text" id="fit-tickers" placeholder="e.g. AAPL,MSFT,NVDA">
+                </div>
+                <div>
+                    <label>Target Sector</label>
+                    <input type="text" id="fit-sector" placeholder="e.g. Technology">
+                </div>
+                <div>
+                    <label>Raise Size ($)</label>
+                    <input type="text" id="fit-raise" placeholder="e.g. 50000000">
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-bar" id="stats-bar" style="display:none">
+            <span><strong id="total-count">0</strong> firms found</span>
+            <span>
+                <button onclick="exportCSV()" style="background:#1a1a2e;border:1px solid #2a2a4a;color:#6366f1;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:12px;">Export CSV</button>
+                Page <strong id="page-num">1</strong> of <strong id="page-total">1</strong>
+            </span>
+        </div>
+
+        <div class="results" id="results">
+            <div class="empty">Select filters and click Search to find investment advisers</div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display:none">
+            <button id="btn-prev" onclick="prevPage()">Previous</button>
+            <button id="btn-next" onclick="nextPage()">Next</button>
+        </div>
+        </div><!-- /tab-search -->
+
+        <!-- TAB 2: Peer Analysis -->
+        <div class="tab-panel" id="tab-peers">
+            <div class="peer-filters">
+                <div class="peer-filters-grid">
+                    <div class="filter-group">
+                        <label>Target Ticker (optional)</label>
+                        <input type="text" id="pa-target" placeholder="e.g. PLTR" style="text-transform:uppercase">
+                    </div>
+                    <div class="filter-group">
+                        <label>Peer Tickers (comma-separated)</label>
+                        <input type="text" id="pa-peers" placeholder="e.g. SNOW,MDB,DDOG,CRWD,NET" onkeydown="if(event.key==='Enter')doPeerSearch()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Target Sector</label>
+                        <select id="pa-sector">
+                            <option value="">None</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Financials">Financials</option>
+                            <option value="Consumer Discretionary">Consumer Discretionary</option>
+                            <option value="Industrials">Industrials</option>
+                            <option value="Energy">Energy</option>
+                            <option value="Materials">Materials</option>
+                            <option value="Real Estate">Real Estate</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Communication Services">Communication Services</option>
+                            <option value="Consumer Staples">Consumer Staples</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="peer-filters-row2">
+                    <div class="filter-group">
+                        <label>Min Peer Overlap</label>
+                        <select id="pa-min-overlap">
+                            <option value="1">1+</option>
+                            <option value="2">2+</option>
+                            <option value="3">3+</option>
+                            <option value="4">4+</option>
+                            <option value="5">5+</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Include Target Holders</label>
+                        <select id="pa-include-target">
+                            <option value="false">Exclude (who doesn't hold me yet)</option>
+                            <option value="true">Include (show all)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Results Limit</label>
+                        <select id="pa-limit">
+                            <option value="10">Top 10</option>
+                            <option value="25">Top 25</option>
+                            <option value="50" selected>Top 50</option>
+                            <option value="100">Top 100</option>
+                        </select>
+                    </div>
+                    <button class="search-btn" onclick="doPeerSearch()">Find Investors</button>
+                </div>
+            </div>
+
+            <div id="peer-summary" style="display:none"></div>
+            <div class="results" id="peer-results">
+                <div class="empty">Enter peer tickers and click Find Investors to discover institutional buyers</div>
+            </div>
+        </div><!-- /tab-peers -->
+
+        <!-- TAB 3: Contact Search -->
+        <div class="tab-panel" id="tab-contacts">
+            <div class="contact-search-bar">
+                <input type="text" id="cs-name" placeholder="Search by executive name (e.g. David Booth)" onkeydown="if(event.key==='Enter')doContactSearch()">
+                <select id="cs-title-filter">
+                    <option value="">Any Title</option>
+                    <option value="CEO">CEO</option>
+                    <option value="CFO">CFO</option>
+                    <option value="CCO">CCO / Compliance</option>
+                    <option value="PRESIDENT">President</option>
+                    <option value="DIRECTOR">Director</option>
+                    <option value="PARTNER">Partner</option>
+                    <option value="MANAGING">Managing Director/Member</option>
+                </select>
+                <select id="cs-control-filter">
+                    <option value="">All</option>
+                    <option value="1">Control Persons Only</option>
+                </select>
+                <button class="search-btn" onclick="doContactSearch()">Search</button>
+            </div>
+            <div class="stats-bar" id="cs-stats" style="display:none">
+                <span><strong id="cs-count">0</strong> contacts found</span>
+            </div>
+            <div class="results" id="cs-results">
+                <div class="empty">Search for executives across 98K+ SEC-registered contacts</div>
+            </div>
+        </div><!-- /tab-contacts -->
+
+        <!-- TAB 4: Outreach History -->
+        <div class="tab-panel" id="tab-outreach">
+            <div style="display:flex;gap:16px;margin-bottom:20px;">
+                <div id="outreach-stats-cards" style="display:flex;gap:12px;flex:1;"></div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <select id="oh-status-filter" onchange="loadOutreachHistory()" style="padding:8px 12px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#e0e0e0;font-size:13px;">
+                        <option value="">All Statuses</option>
+                        <option value="draft">Drafts</option>
+                        <option value="sent">Sent</option>
+                        <option value="opened">Opened</option>
+                        <option value="replied">Replied</option>
+                    </select>
+                    <button class="search-btn" onclick="loadOutreachHistory()" style="padding:8px 16px;">Refresh</button>
+                </div>
+            </div>
+            <div class="results" id="oh-results">
+                <div class="empty">No outreach drafts yet. Open a firm and click "Generate Outreach" to create your first draft.</div>
+            </div>
+        </div><!-- /tab-outreach -->
+
+        <!-- TAB 5: Allocator Search -->
+        <div class="tab-panel" id="tab-allocators">
+        <div class="filters" id="alloc-filters">
+            <div class="filter-group" style="grid-column: 1 / -1;">
+                <label>Search by Name</label>
+                <input type="text" id="al-query" placeholder="e.g. CalPERS, Harvard Endowment, ADIA..." onkeydown="if(event.key==='Enter')doAllocatorSearch(0)">
+            </div>
+            <div class="filter-group">
+                <label>Entity Type</label>
+                <select id="al-type">
+                    <option value="">All Types</option>
+                    <option value="pension">Public Pension</option>
+                    <option value="endowment">Endowment</option>
+                    <option value="foundation">Foundation</option>
+                    <option value="sovereign_wealth">Sovereign Wealth Fund</option>
+                    <option value="family_office">Family Office</option>
+                    <option value="insurance">Insurance Company</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>AUM Range</label>
+                <select id="al-aum">
+                    <option value="">Any AUM</option>
+                    <option value="10000000000">$10B+</option>
+                    <option value="50000000000">$50B+</option>
+                    <option value="100000000000">$100B+</option>
+                    <option value="500000000000">$500B+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Country</label>
+                <select id="al-country" onchange="toggleAllocatorState()">
+                    <option value="">All Countries</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="NO">Norway</option>
+                    <option value="SG">Singapore</option>
+                </select>
+            </div>
+            <div class="filter-group" id="al-state-group">
+                <label>State</label>
+                <select id="al-state"><option value="">Any State</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Gatekeeper Filter</label>
+                <select id="al-gatekeeper">
+                    <option value="">All Firms</option>
+                    <option value="1">Gatekeepers Only</option>
+                    <option value="0">Non-Gatekeepers Only</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Sort By</label>
+                <select id="al-sort">
+                    <option value="total_value">AUM (Highest)</option>
+                    <option value="gatekeeper_score">Gatekeeper Score</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="holdings_count">13F Holdings Count</option>
+                </select>
+            </div>
+            <button class="search-btn" onclick="doAllocatorSearch(0)">Search Allocators</button>
+        </div>
+
+        <div class="fit-toggle" id="al-fit-panel">
+            <div class="toggle-switch" id="al-fit-toggle" onclick="toggleAllocatorFitScore()"></div>
+            <label>LP Fit Score</label>
+            <span style="font-size:12px;color:#666;">Score allocators by fund alignment</span>
+            <div class="fit-context" id="al-fit-context">
+                <div>
+                    <label>Target Sectors</label>
+                    <input type="text" id="al-fit-sectors" placeholder="e.g. Technology, AI, Infrastructure">
+                </div>
+                <div>
+                    <label>Fund Size ($)</label>
+                    <input type="text" id="al-fit-fund-size" placeholder="e.g. 100000000">
+                </div>
+                <div>
+                    <label>Strategy Type</label>
+                    <select id="al-fit-strategy" style="width:100%;padding:8px 12px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:8px;color:#e0e0e0;font-size:13px;">
+                        <option value="">Any Strategy</option>
+                        <option value="venture">Venture Capital</option>
+                        <option value="growth">Growth Equity</option>
+                        <option value="infrastructure">Infrastructure</option>
+                        <option value="buyout">Buyout / PE</option>
+                        <option value="real_assets">Real Assets</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-bar" id="al-stats-bar" style="display:none">
+            <span><strong id="al-total-count">0</strong> allocators found</span>
+            <span>
+                <button onclick="exportAllocatorCSV()" style="background:#1a1a2e;border:1px solid #2a2a4a;color:#6366f1;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:12px;">Export CSV</button>
+                Page <strong id="al-page-num">1</strong> of <strong id="al-page-total">1</strong>
+            </span>
+        </div>
+
+        <div class="results" id="al-results">
+            <div class="empty">Search pension funds, endowments, sovereign wealth funds, and other institutional allocators. Powered by SEC 13F filings.</div>
+        </div>
+
+        <div class="pagination" id="al-pagination" style="display:none">
+            <button id="al-btn-prev" onclick="allocatorPrevPage()">Previous</button>
+            <button id="al-btn-next" onclick="allocatorNextPage()">Next</button>
+        </div>
+        </div><!-- /tab-allocators -->
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // API base URL — configure this for deployment
+        // For Netlify deploy: set to the public API URL (e.g. https://ir.purebrain.ai)
+        // For local dev: leave empty (same-origin)
+        const API = window.PUREBRAIN_IR_API || '';
+        let currentOffset = 0;
+        const PER_PAGE = 25;
+        let totalResults = 0;
+        let fitScoreEnabled = false;
+
+        function toggleFitScore() {
+            fitScoreEnabled = !fitScoreEnabled;
+            document.getElementById('fit-toggle').classList.toggle('active', fitScoreEnabled);
+            document.getElementById('fit-context').classList.toggle('active', fitScoreEnabled);
+        }
+
+        function fitBadgeClass(score) {
+            if (score >= 50) return 'high';
+            if (score >= 25) return 'medium';
+            return 'low';
+        }
+
+        function renderFitBadge(fs) {
+            if (!fs) return '';
+            return `<div class="fit-badge ${fitBadgeClass(fs.total_score)}">
+                ${fs.total_score.toFixed(0)} <span class="conf">${fs.confidence}</span>
+            </div>`;
+        }
+
+        function renderFitBreakdown(fs) {
+            if (!fs || fs.confidence === 'low' && fs.total_score === 0) return '';
+            const dims = [
+                {label: 'Profile', val: fs.profile_match, max: 20},
+                {label: 'Sector', val: fs.sector_alignment, max: 20},
+                {label: 'Behavior', val: fs.position_behavior, max: 20},
+                {label: 'Signal', val: fs.direct_signal, max: 20},
+                {label: 'Peers', val: fs.peer_overlap || 0, max: 20},
+            ];
+            return `<div class="fit-breakdown">
+                ${dims.map(d => `<div class="dim">
+                    <span>${d.label}</span>
+                    <div class="dim-bar"><div class="dim-fill" style="width:${(d.val/d.max*100).toFixed(0)}%"></div></div>
+                    <span>${d.val.toFixed(0)}</span>
+                </div>`).join('')}
+            </div>`;
+        }
+
+        // Load state dropdown
+        fetch(API + '/api/search/options')
+            .then(r => r.json())
+            .then(opts => {
+                const sel = document.getElementById('f-state');
+                opts.states.forEach(s => {
+                    const o = document.createElement('option');
+                    o.value = s; o.textContent = s;
+                    sel.appendChild(o);
+                });
+            });
+
+        function buildParams(offset) {
+            const p = new URLSearchParams();
+            const query = document.getElementById('f-query').value;
+            const state = document.getElementById('f-state').value;
+            const client = document.getElementById('f-client').value;
+            const aum = document.getElementById('f-aum').value;
+            const service = document.getElementById('f-service').value;
+            const sortVal = document.getElementById('f-sort').value;
+            const [sortBy, sortDir] = sortVal.split('-');
+
+            if (query) p.set('query', query);
+            if (state) p.set('state', state);
+            if (client) p.set('client_type', client);
+            if (aum) {
+                const [min, max] = aum.split('-');
+                if (min) p.set('aum_min', min);
+                if (max) p.set('aum_max', max);
+            }
+            if (service) p.set('service', service);
+            const firmType = document.getElementById('f-firmtype').value;
+            if (firmType !== 'all') p.set('firm_type', firmType);
+            p.set('sort_by', sortBy);
+            p.set('sort_dir', sortDir);
+            p.set('limit', PER_PAGE);
+            p.set('offset', offset);
+
+            if (fitScoreEnabled) {
+                p.set('fit_score', 'true');
+                const tickers = document.getElementById('fit-tickers').value.trim();
+                const sector = document.getElementById('fit-sector').value.trim();
+                const raise = document.getElementById('fit-raise').value.trim();
+                if (tickers) p.set('target_tickers', tickers);
+                if (sector) p.set('target_sector', sector);
+                if (raise) p.set('target_raise_size', raise);
+            }
+
+            return p;
+        }
+
+        function exportCSV() {
+            const params = buildParams(0);
+            params.delete('limit');
+            params.delete('offset');
+            window.open(API + '/api/search/export?' + params, '_blank');
+        }
+
+        async function doSearch(offset) {
+            currentOffset = offset;
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="loading">Searching...</div>';
+
+            const params = buildParams(offset);
+            const resp = await fetch(API + '/api/search/firms?' + params);
+            const data = await resp.json();
+
+            totalResults = data.total;
+            document.getElementById('total-count').textContent = totalResults.toLocaleString();
+            document.getElementById('page-num').textContent = data.page;
+            document.getElementById('page-total').textContent = data.total_pages;
+            document.getElementById('stats-bar').style.display = 'flex';
+
+            if (data.results.length === 0) {
+                results.innerHTML = '<div class="empty">No firms match your filters. Try broadening your search.</div>';
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            results.innerHTML = data.results.map(firm => `
+                <div class="firm-card" onclick="showDetail('${firm.crd_number}')">
+                    <div class="firm-top">
+                        <div class="firm-name">${firm.legal_name}${firm.firm_type === 'ERA' ? ' <span style="background:#92400e;color:#fbbf24;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:8px;font-weight:700;">ERA</span>' : ''}</div>
+                        <div style="display:flex;gap:12px;align-items:center;">
+                            ${firm.fit_score ? renderFitBadge(firm.fit_score) : ''}
+                            <div class="firm-aum">${firm.aum_display}</div>
+                        </div>
+                    </div>
+                    <div class="firm-meta">
+                        <span><span class="label">CRD:</span> ${firm.crd_number}</span>
+                        <span><span class="label">Location:</span> ${firm.city ? firm.city + ', ' : ''}${firm.state || firm.country || 'N/A'}</span>
+                        ${firm.firm_type !== 'ERA' ? `<span><span class="label">Clients:</span> ${(firm.clients_total || 0).toLocaleString()}</span>` : ''}
+                        <span><span class="label">Entity:</span> ${firm.entity_type || 'N/A'}</span>
+                    </div>
+                    ${firm.fit_score ? renderFitBreakdown(firm.fit_score) : ''}
+                    ${firm.services_list && firm.services_list.length > 0 ? `<div class="firm-tags">${firm.services_list.map(s => '<span class="tag">' + s + '</span>').join('')}</div>` : ''}
+                    <div class="contact-row">
+                        <span class="phone">${firm.phone || 'No phone'}</span>
+                        <span>${firm.address_display || ''}</span>
+                        ${firm.key_executives && firm.key_executives.length > 0 ? `<span style="color:#6366f1;font-size:12px;">${firm.key_executives.map(e => e.name).join(' · ')}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            const pag = document.getElementById('pagination');
+            pag.style.display = 'flex';
+            document.getElementById('btn-prev').disabled = offset === 0;
+            document.getElementById('btn-next').disabled = (offset + PER_PAGE) >= totalResults;
+        }
+
+        function prevPage() {
+            if (currentOffset >= PER_PAGE) doSearch(currentOffset - PER_PAGE);
+        }
+        function nextPage() {
+            if (currentOffset + PER_PAGE < totalResults) doSearch(currentOffset + PER_PAGE);
+        }
+
+        async function showDetail(crd) {
+            const resp = await fetch(API + '/api/firms/' + crd);
+            const f = resp.json ? await resp.json() : null;
+            if (!f) return;
+
+            const aum = f.aum_total || 0;
+            let aumDisplay = 'N/A';
+            if (aum >= 1e12) aumDisplay = '$' + (aum/1e12).toFixed(1) + 'T';
+            else if (aum >= 1e9) aumDisplay = '$' + (aum/1e9).toFixed(1) + 'B';
+            else if (aum >= 1e6) aumDisplay = '$' + (aum/1e6).toFixed(0) + 'M';
+            else if (aum > 0) aumDisplay = '$' + (aum/1e3).toFixed(0) + 'K';
+
+            document.getElementById('modal-content').innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <h2>${f.legal_name}</h2>
+                        <p class="subtitle">CRD: ${f.crd_number} | SEC: ${f.sec_number || 'N/A'}${f.cik_number ? ' | CIK: ' + f.cik_number : ''}</p>
+                    </div>
+                    <div id="risk-badge-${f.crd_number}" style="flex-shrink:0;margin-left:12px;"></div>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>Total AUM</label>
+                        <div class="value highlight">${aumDisplay}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Phone</label>
+                        <div class="value">${f.phone || 'N/A'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Address</label>
+                        <div class="value">${[f.street1, f.street2].filter(Boolean).join(', ')}<br>${f.city || ''}, ${f.state || ''} ${f.postal_code || ''}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Entity Type</label>
+                        <div class="value">${f.entity_type || 'N/A'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Discretionary AUM</label>
+                        <div class="value">$${(f.aum_discretionary/1e6).toFixed(0)}M</div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Non-Discretionary AUM</label>
+                        <div class="value">$${(f.aum_nondiscretionary/1e6).toFixed(0)}M</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Client Breakdown</h3>
+                    <div class="detail-grid">
+                        ${f.clients_individuals ? `<div class="detail-item"><label>Individuals</label><div class="value">${f.clients_individuals.toLocaleString()}</div></div>` : ''}
+                        ${f.clients_hnw ? `<div class="detail-item"><label>HNW Individuals</label><div class="value">${f.clients_hnw.toLocaleString()}</div></div>` : ''}
+                        ${f.clients_corporate ? `<div class="detail-item"><label>Corporations</label><div class="value">${f.clients_corporate.toLocaleString()}</div></div>` : ''}
+                        ${f.clients_pension ? `<div class="detail-item"><label>Pension Plans</label><div class="value">${f.clients_pension.toLocaleString()}</div></div>` : ''}
+                        ${f.clients_pooled ? `<div class="detail-item"><label>Pooled Vehicles</label><div class="value">${f.clients_pooled.toLocaleString()}</div></div>` : ''}
+                        ${f.clients_charity ? `<div class="detail-item"><label>Charities</label><div class="value">${f.clients_charity.toLocaleString()}</div></div>` : ''}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Services Offered</h3>
+                    <div class="firm-tags">
+                        ${f.svc_financial_planning ? '<span class="tag">Financial Planning</span>' : ''}
+                        ${f.svc_portfolio_indiv ? '<span class="tag">Portfolio Mgmt (Individual)</span>' : ''}
+                        ${f.svc_portfolio_biz ? '<span class="tag">Portfolio Mgmt (Business)</span>' : ''}
+                        ${f.svc_pension_consulting ? '<span class="tag">Pension Consulting</span>' : ''}
+                        ${f.svc_adviser_selection ? '<span class="tag">Adviser Selection</span>' : ''}
+                        ${f.svc_publications ? '<span class="tag">Publications</span>' : ''}
+                        ${f.svc_commodities ? '<span class="tag">Commodities</span>' : ''}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Key Personnel</h3>
+                    <div id="exec-list-${f.crd_number}" style="display:flex;flex-direction:column;gap:8px;">
+                        <div style="color:#666;font-size:12px;">Loading contacts...</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Compensation</h3>
+                    <div class="firm-tags">
+                        ${f.comp_pct_aum ? '<span class="tag">% of AUM</span>' : ''}
+                        ${f.comp_hourly ? '<span class="tag">Hourly</span>' : ''}
+                        ${f.comp_fixed ? '<span class="tag">Fixed Fees</span>' : ''}
+                        ${f.comp_commissions ? '<span class="tag">Commissions</span>' : ''}
+                        ${f.comp_performance ? '<span class="tag">Performance-based</span>' : ''}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Outreach</h3>
+                    <button class="outreach-btn" id="outreach-btn-${f.crd_number}" onclick="toggleOutreachPanel('${f.crd_number}', '${(f.legal_name||'').replace(/'/g, "\\'")}')">
+                        <span>Generate Outreach</span>
+                    </button>
+                    <div class="outreach-panel" id="outreach-panel-${f.crd_number}" style="display:none;">
+                        <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Select Template</div>
+                        <div class="template-selector" id="template-chips-${f.crd_number}">
+                            <span style="color:#666;font-size:12px;">Loading templates...</span>
+                        </div>
+                        <div class="draft-meta" style="display:none;" id="draft-meta-${f.crd_number}">
+                            <input type="text" id="draft-company-${f.crd_number}" placeholder="Your Company Name" value="">
+                            <input type="text" id="draft-sector-${f.crd_number}" placeholder="Sector (e.g. Technology)" value="">
+                            <input type="text" id="draft-raise-${f.crd_number}" placeholder="Raise Type (e.g. Series B)" value="">
+                        </div>
+                        <div id="draft-info-${f.crd_number}" style="display:none;font-size:12px;color:#888;margin-bottom:8px;"></div>
+                        <div id="draft-subject-wrap-${f.crd_number}" style="display:none;margin-bottom:8px;">
+                            <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Subject</div>
+                            <input type="text" id="draft-subject-${f.crd_number}" style="width:100%;padding:8px 12px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#e0e0e0;font-size:13px;">
+                        </div>
+                        <textarea class="draft-editor" id="draft-body-${f.crd_number}" style="display:none;" placeholder="Draft will appear here..."></textarea>
+                        <div class="draft-actions" id="draft-actions-${f.crd_number}" style="display:none;">
+                            <button class="btn-secondary" onclick="copyDraft('${f.crd_number}')">Copy</button>
+                            <button class="btn-secondary" onclick="markDraftStatus(currentDraftId, 'sent')">Mark Sent</button>
+                            <button class="btn-primary" onclick="regenerateDraft('${f.crd_number}')">Regenerate</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Disclosure History</h3>
+                    <div id="disc-list-${f.crd_number}" style="font-size:12px;color:#666;">Loading disclosures...</div>
+                </div>
+
+                <div class="detail-section" style="font-size:12px; color:#666; display:flex; gap:16px; flex-wrap:wrap;">
+                    <span>Filing: ${f.filing_date || 'N/A'}</span>
+                    <span>Form: ${f.form_version || 'N/A'}</span>
+                    ${f.cik_number ? `<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${f.cik_number}&type=13F&dateb=&owner=include&count=10" target="_blank" style="color:#6366f1;text-decoration:none;">13F Filings</a>` : ''}
+                    <a href="https://adviserinfo.sec.gov/firm/summary/${f.crd_number}" target="_blank" style="color:#6366f1;text-decoration:none;">IAPD Profile</a>
+                </div>
+            `;
+            document.getElementById('modal').classList.add('active');
+
+            // Async-load enriched contacts
+            fetch(API + '/api/firms/' + crd + '/contacts')
+                .then(r => r.json())
+                .then(data => {
+                    const el = document.getElementById('exec-list-' + crd);
+                    if (!el || !data.contacts) return;
+                    const contacts = data.contacts;
+                    if (contacts.length === 0) {
+                        el.innerHTML = '<div style="color:#666;font-size:12px;">No executive data available</div>';
+                        return;
+                    }
+                    el.innerHTML = `<div style="color:#666;font-size:11px;margin-bottom:4px;">${data.total_contacts} executives${data.firm_domain_guess ? ' · Domain: ' + data.firm_domain_guess : ''}</div>`
+                        + contacts.slice(0, 20).map(c => `
+                            <div style="padding:10px 12px;background:#0d0d14;border-radius:8px;border:1px solid #1a1a2a;">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                    <div style="min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <span style="color:#e0e0e0;font-weight:600;font-size:14px;">${c.name}</span>
+                                            ${c.control_person ? '<span style="background:#1e1b4b;color:#818cf8;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;">CONTROL</span>' : ''}
+                                        </div>
+                                        <div style="color:#888;font-size:12px;margin-top:2px;">${c.title || ''}</div>
+                                    </div>
+                                    <div style="display:flex;gap:4px;flex-shrink:0;margin-left:12px;">
+                                        ${c.linkedin_url ? `<a href="${c.linkedin_url}" target="_blank" onclick="event.stopPropagation()" style="color:#0a66c2;font-size:10px;text-decoration:none;padding:3px 7px;background:#0a66c215;border:1px solid #0a66c233;border-radius:4px;" title="LinkedIn Profile (inferred)">LinkedIn</a>` : ''}
+                                        ${c.brokercheck_url ? `<a href="${c.brokercheck_url}" target="_blank" onclick="event.stopPropagation()" style="color:#10b981;font-size:10px;text-decoration:none;padding:3px 7px;background:#10b98115;border:1px solid #10b98133;border-radius:4px;" title="FINRA BrokerCheck">BrokerCheck</a>` : ''}
+                                    </div>
+                                </div>
+                                ${c.email_guess ? `<div style="margin-top:6px;font-size:11px;"><span style="color:#666;">Email:</span> <span style="color:#6366f1;">${c.email_guess}</span> <span style="color:#555;font-size:9px;background:#1e1e30;padding:1px 5px;border-radius:3px;">${c.email_confidence}</span></div>` : ''}
+                                ${c.individual_crd ? `<div style="margin-top:2px;font-size:10px;color:#555;">CRD: ${c.individual_crd}</div>` : ''}
+                            </div>
+                        `).join('')
+                        + (contacts.length > 20 ? `<div style="color:#666;font-size:12px;padding:6px 8px;">+ ${contacts.length - 20} more executives</div>` : '');
+                })
+                .catch(() => {});
+
+            // Async-load disclosures + risk badge
+            fetch(API + '/api/firms/' + crd + '/disclosures')
+                .then(r => r.json())
+                .then(data => {
+                    // Risk badge in header
+                    const badgeEl = document.getElementById('risk-badge-' + crd);
+                    if (badgeEl) {
+                        const flag = data.risk_flag || 'clean';
+                        const labels = {clean: 'Clean Record', noted: 'Noted', elevated: 'Elevated', high: 'High Risk'};
+                        badgeEl.innerHTML = `<span class="risk-badge ${flag}">${labels[flag] || flag}</span>`;
+                    }
+                    // Disclosure list
+                    const discEl = document.getElementById('disc-list-' + crd);
+                    if (discEl) {
+                        if (data.total_disclosures === 0) {
+                            discEl.innerHTML = '<span class="risk-badge clean">No disclosures on file</span>';
+                        } else {
+                            discEl.innerHTML = `<div style="margin-bottom:8px;"><span class="risk-badge ${data.risk_flag}">${data.total_disclosures} disclosure(s)</span></div>`
+                                + data.disclosures.slice(0, 10).map(d => `
+                                    <div style="padding:6px 8px;background:#0d0d14;border-radius:6px;margin-bottom:4px;font-size:12px;">
+                                        <div style="color:#e0e0e0;">${d.event_type || 'Disclosure'}</div>
+                                        <div style="color:#666;">${d.event_date || ''} — ${d.description || ''}</div>
+                                    </div>
+                                `).join('');
+                        }
+                    }
+                })
+                .catch(() => {
+                    const discEl = document.getElementById('disc-list-' + crd);
+                    if (discEl) discEl.innerHTML = '<span class="risk-badge clean">No disclosures on file</span>';
+                    const badgeEl = document.getElementById('risk-badge-' + crd);
+                    if (badgeEl) badgeEl.innerHTML = '<span class="risk-badge clean">Clean Record</span>';
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ── Tab Navigation ──
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick*="${tab}"]`).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        // ── Peer Analysis ──
+        function peerScoreClass(score) {
+            if (score >= 14) return 'high';
+            if (score >= 8) return 'medium';
+            return 'low';
+        }
+
+        function formatValue(val) {
+            if (val >= 1e12) return '$' + (val / 1e12).toFixed(1) + 'T';
+            if (val >= 1e9) return '$' + (val / 1e9).toFixed(1) + 'B';
+            if (val >= 1e6) return '$' + (val / 1e6).toFixed(0) + 'M';
+            if (val > 0) return '$' + (val / 1e3).toFixed(0) + 'K';
+            return 'N/A';
+        }
+
+        function renderPeerCard(r, rank, allPeers) {
+            const cls = peerScoreClass(r.composite_score);
+            const pct = (r.composite_score / 20 * 100).toFixed(0);
+
+            const tickerTags = allPeers.map(t => {
+                const held = r.peers_held.includes(t);
+                const val = r.peer_position_values[t];
+                const tip = held && val ? ` title="${formatValue(val)}"` : '';
+                return `<span class="peer-ticker-tag ${held ? 'held' : 'missing'}"${tip}>${t}${held ? '' : ' ✕'}</span>`;
+            }).join('');
+
+            const dims = [
+                {label: 'Overlap', val: r.raw_overlap_score, max: 10},
+                {label: 'Recency', val: r.recency_score, max: 5},
+                {label: 'Sector', val: r.sector_affinity_score, max: 5},
+            ];
+            const dimHtml = dims.map(d => `<div class="peer-dim">
+                <span>${d.label}</span>
+                <div class="peer-dim-bar"><div class="peer-dim-fill" style="width:${(d.val/d.max*100).toFixed(0)}%"></div></div>
+                <span>${d.val.toFixed(1)}</span>
+            </div>`).join('');
+
+            return `<div class="peer-result-card"${r.crd_number ? ` onclick="showDetail('${r.crd_number}')" style="cursor:pointer"` : ''}>
+                <div style="display:flex;gap:16px;align-items:flex-start;">
+                    <div class="peer-rank">${rank}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div>
+                                <div style="font-size:16px;font-weight:600;color:#fff;">
+                                    ${r.legal_name || r.investor_name}
+                                    ${r.holds_target ? '<span style="background:#92400e;color:#fbbf24;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:8px;">HOLDS TARGET</span>' : ''}
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="fit-badge ${cls}" style="font-size:16px;">
+                                    ${r.composite_score.toFixed(1)}<span style="font-size:11px;opacity:0.6;margin-left:2px;">/20</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="peer-score-bar">
+                            <div class="peer-score-track"><div class="peer-score-fill ${cls}" style="width:${pct}%"></div></div>
+                        </div>
+                        <div class="peer-tickers-held">${tickerTags}</div>
+                        <div class="peer-meta-row">
+                            <span><strong>${r.overlap_count}/${allPeers.length}</strong> peers (${(r.overlap_ratio * 100).toFixed(0)}%)</span>
+                            <span>Positions: <strong>${r.total_positions.toLocaleString()}</strong></span>
+                            <span>Portfolio: <strong>${formatValue(r.total_portfolio_value)}</strong></span>
+                            ${r.aum_display !== 'N/A' ? `<span>AUM: <strong>${r.aum_display}</strong></span>` : ''}
+                            ${r.state ? `<span>${r.state}</span>` : ''}
+                            ${r.crd_number ? `<span style="color:#6366f1;">CRD: ${r.crd_number}</span>` : ''}
+                            ${r.cik ? `<span style="color:#666;">CIK: ${r.cik}</span>` : ''}
+                        </div>
+                        <div class="peer-score-dims">${dimHtml}</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        async function doPeerSearch() {
+            const peersInput = document.getElementById('pa-peers').value.trim();
+            if (!peersInput) {
+                document.getElementById('peer-results').innerHTML = '<div class="empty">Enter at least one peer ticker</div>';
+                return;
+            }
+
+            const target = document.getElementById('pa-target').value.trim().toUpperCase();
+            const sector = document.getElementById('pa-sector').value;
+            const minOverlap = document.getElementById('pa-min-overlap').value;
+            const includeTarget = document.getElementById('pa-include-target').value;
+            const limit = document.getElementById('pa-limit').value;
+
+            const peers = peersInput.toUpperCase().split(',').map(t => t.trim()).filter(Boolean);
+
+            document.getElementById('peer-results').innerHTML = '<div class="loading">Analyzing peer holdings across 88 institutional portfolios...</div>';
+            document.getElementById('peer-summary').style.display = 'none';
+
+            const params = new URLSearchParams();
+            params.set('peer_tickers', peers.join(','));
+            if (target) params.set('target_ticker', target);
+            if (sector) params.set('target_sector', sector);
+            params.set('min_overlap', minOverlap);
+            params.set('include_target_holders', includeTarget);
+            params.set('limit', limit);
+
+            const resp = await fetch(API + '/api/peer-analysis?' + params);
+            const data = await resp.json();
+
+            // Summary bar
+            const summaryEl = document.getElementById('peer-summary');
+            summaryEl.style.display = 'flex';
+            summaryEl.className = 'peer-summary';
+            summaryEl.innerHTML = `
+                <div><strong>${data.total_matches}</strong> matches</div>
+                <div>${data.total_investors_scanned} investors scanned</div>
+                <div>Latest filing: ${data.latest_filing_period || 'N/A'}</div>
+                ${target ? `<div>Target: ${target}</div>` : ''}
+                <div>Peers: ${peers.join(', ')}</div>
+                ${sector ? `<div>Sector: ${sector}</div>` : ''}
+            `;
+
+            if (data.results.length === 0) {
+                document.getElementById('peer-results').innerHTML = '<div class="empty">No investors found matching these peer criteria. Try broader tickers or lower overlap threshold.</div>';
+                return;
+            }
+
+            document.getElementById('peer-results').innerHTML = data.results.map(
+                (r, i) => renderPeerCard(r, i + 1, peers)
+            ).join('');
+        }
+        // ── Contact Search ──
+        async function doContactSearch() {
+            const nameQuery = document.getElementById('cs-name').value.trim();
+            const titleFilter = document.getElementById('cs-title-filter').value;
+            const controlOnly = document.getElementById('cs-control-filter').value;
+
+            const resultsEl = document.getElementById('cs-results');
+            resultsEl.innerHTML = '<div class="loading">Searching 98K+ contacts...</div>';
+
+            const params = new URLSearchParams();
+            if (nameQuery) params.set('query', nameQuery);
+            if (titleFilter) params.set('title_filter', titleFilter);
+            if (controlOnly) params.set('control_only', 'true');
+            params.set('limit', '50');
+
+            const resp = await fetch(API + '/api/search/contacts?' + params);
+            const data = await resp.json();
+
+            document.getElementById('cs-count').textContent = data.total.toLocaleString();
+            document.getElementById('cs-stats').style.display = 'flex';
+
+            if (data.results.length === 0) {
+                resultsEl.innerHTML = '<div class="empty">No contacts found matching your search.</div>';
+                return;
+            }
+
+            resultsEl.innerHTML = data.results.map(c => `
+                <div class="firm-card" ${c.firm_crd ? `onclick="showDetail('${c.firm_crd}')" style="cursor:pointer"` : ''}>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div>
+                            <div style="font-size:16px;font-weight:600;color:#fff;">
+                                ${c.name}
+                                ${c.control_person ? '<span style="background:#1e1b4b;color:#818cf8;font-size:9px;padding:2px 6px;border-radius:3px;margin-left:6px;font-weight:700;">CONTROL</span>' : ''}
+                            </div>
+                            <div style="font-size:13px;color:#888;margin-top:2px;">${c.title || ''}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:14px;font-weight:600;color:#6366f1;">${c.firm_aum_display}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#888;">
+                        <span style="color:#ccc;font-weight:500;">${c.firm_name || 'Unknown Firm'}</span>
+                        ${c.firm_city && c.firm_state ? `<span>${c.firm_city}, ${c.firm_state}</span>` : c.firm_state ? `<span>${c.firm_state}</span>` : ''}
+                        ${c.firm_crd ? `<span style="color:#6366f1;">CRD: ${c.firm_crd}</span>` : ''}
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        ${c.linkedin_url ? `<a href="${c.linkedin_url}" target="_blank" onclick="event.stopPropagation()" style="color:#0a66c2;font-size:11px;text-decoration:none;padding:4px 10px;background:#0a66c215;border:1px solid #0a66c233;border-radius:5px;">LinkedIn</a>` : ''}
+                        ${c.brokercheck_url ? `<a href="${c.brokercheck_url}" target="_blank" onclick="event.stopPropagation()" style="color:#10b981;font-size:11px;text-decoration:none;padding:4px 10px;background:#10b98115;border:1px solid #10b98133;border-radius:5px;">BrokerCheck</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        // ── Outreach Engine ──
+        let currentDraftId = null;
+        let outreachTemplates = [];
+
+        async function loadTemplates() {
+            try {
+                const resp = await fetch(API + '/api/outreach/templates');
+                const data = await resp.json();
+                outreachTemplates = data.templates || [];
+            } catch (e) {
+                outreachTemplates = [];
+            }
+        }
+        // Pre-load templates on page load
+        loadTemplates();
+
+        function toggleOutreachPanel(crd, firmName) {
+            const panel = document.getElementById('outreach-panel-' + crd);
+            const isHidden = panel.style.display === 'none';
+            panel.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                renderTemplateChips(crd);
+            }
+        }
+
+        function renderTemplateChips(crd) {
+            const container = document.getElementById('template-chips-' + crd);
+            if (outreachTemplates.length === 0) {
+                container.innerHTML = '<span style="color:#ef4444;font-size:12px;">Failed to load templates</span>';
+                return;
+            }
+            container.innerHTML = outreachTemplates.map(t =>
+                `<button class="template-chip" data-template="${t.id}" onclick="selectTemplate('${crd}', '${t.id}')" title="${t.description}">${t.name}</button>`
+            ).join('');
+        }
+
+        async function selectTemplate(crd, templateId) {
+            // Highlight selected chip
+            const chips = document.querySelectorAll('#template-chips-' + crd + ' .template-chip');
+            chips.forEach(c => c.classList.toggle('active', c.dataset.template === templateId));
+
+            // Show meta inputs
+            document.getElementById('draft-meta-' + crd).style.display = 'flex';
+
+            // Generate draft via API
+            const company = document.getElementById('draft-company-' + crd).value || 'Our Company';
+            const sector = document.getElementById('draft-sector-' + crd).value || 'Technology';
+            const raiseType = document.getElementById('draft-raise-' + crd).value || 'fundraise';
+
+            const bodyEl = document.getElementById('draft-body-' + crd);
+            bodyEl.style.display = 'block';
+            bodyEl.value = 'Generating draft...';
+
+            try {
+                const resp = await fetch(API + '/api/outreach/draft', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        crd_number: crd,
+                        template_id: templateId,
+                        target_company: company,
+                        target_sector: sector,
+                        raise_type: raiseType,
+                    })
+                });
+                const draft = await resp.json();
+
+                if (draft.error) {
+                    bodyEl.value = 'Error: ' + draft.error;
+                    return;
+                }
+
+                currentDraftId = draft.id;
+
+                // Show subject
+                const subjectWrap = document.getElementById('draft-subject-wrap-' + crd);
+                subjectWrap.style.display = 'block';
+                document.getElementById('draft-subject-' + crd).value = draft.subject || '';
+
+                // Show contact info
+                const infoEl = document.getElementById('draft-info-' + crd);
+                infoEl.style.display = 'block';
+                infoEl.innerHTML = `<span>To: <strong style="color:#e0e0e0;">${draft.contact_name}</strong></span>`
+                    + (draft.contact_email ? ` &middot; <span style="color:#6366f1;">${draft.contact_email}</span>` : '')
+                    + (draft.fit_score ? ` &middot; <span>Fit: <strong style="color:#10b981;">${draft.fit_score.toFixed(0)}</strong>/100</span>` : '')
+                    + ` &middot; <span style="color:#555;">Draft #${draft.id}</span>`;
+
+                // Show body
+                bodyEl.value = draft.body || '';
+
+                // Show actions
+                document.getElementById('draft-actions-' + crd).style.display = 'flex';
+            } catch (e) {
+                bodyEl.value = 'Network error generating draft. Is the server running?';
+            }
+        }
+
+        async function regenerateDraft(crd) {
+            const activeChip = document.querySelector('#template-chips-' + crd + ' .template-chip.active');
+            if (activeChip) {
+                await selectTemplate(crd, activeChip.dataset.template);
+            }
+        }
+
+        function copyDraft(crd) {
+            const subject = document.getElementById('draft-subject-' + crd).value;
+            const body = document.getElementById('draft-body-' + crd).value;
+            const text = 'Subject: ' + subject + '\n\n' + body;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('#draft-actions-' + crd + ' .btn-secondary');
+                if (btn) {
+                    const orig = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => btn.textContent = orig, 1500);
+                }
+            });
+        }
+
+        async function markDraftStatus(draftId, newStatus) {
+            if (!draftId) return;
+            try {
+                await fetch(API + '/api/outreach/' + draftId + '/status', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: newStatus})
+                });
+            } catch (e) {}
+        }
+
+        // ── Outreach History Tab ──
+        async function loadOutreachHistory() {
+            const resultsEl = document.getElementById('oh-results');
+            resultsEl.innerHTML = '<div class="loading">Loading outreach history...</div>';
+
+            const statusFilter = document.getElementById('oh-status-filter').value;
+            const params = new URLSearchParams();
+            if (statusFilter) params.set('status', statusFilter);
+            params.set('limit', '100');
+
+            try {
+                const [histResp, statsResp] = await Promise.all([
+                    fetch(API + '/api/outreach/history?' + params),
+                    fetch(API + '/api/outreach/stats')
+                ]);
+                const histData = await histResp.json();
+                const statsData = await statsResp.json();
+
+                // Stats cards
+                const statsEl = document.getElementById('outreach-stats-cards');
+                const statusColors = {draft: '#6366f1', sent: '#eab308', opened: '#f97316', replied: '#10b981'};
+                const byStatus = statsData.by_status || {};
+                statsEl.innerHTML = `
+                    <div style="padding:12px 16px;background:#12121a;border:1px solid #1e1e30;border-radius:10px;min-width:80px;text-align:center;">
+                        <div style="font-size:22px;font-weight:700;color:#6366f1;">${statsData.total_drafts || 0}</div>
+                        <div style="font-size:11px;color:#666;text-transform:uppercase;">Total</div>
+                    </div>
+                    ${['draft','sent','opened','replied'].map(s =>
+                        `<div style="padding:12px 16px;background:#12121a;border:1px solid #1e1e30;border-radius:10px;min-width:70px;text-align:center;">
+                            <div style="font-size:20px;font-weight:700;color:${statusColors[s]};">${byStatus[s] || 0}</div>
+                            <div style="font-size:11px;color:#666;text-transform:uppercase;">${s}</div>
+                        </div>`
+                    ).join('')}
+                `;
+
+                const drafts = histData.drafts || [];
+                if (drafts.length === 0) {
+                    resultsEl.innerHTML = '<div class="empty">No outreach drafts found.</div>';
+                    return;
+                }
+
+                resultsEl.innerHTML = drafts.map(d => {
+                    const statusCls = {draft: 'background:#1e1b4b;color:#818cf8', sent: 'background:#3b3600;color:#eab308', opened: 'background:#3b1c00;color:#f97316', replied: 'background:#064e3b;color:#10b981'};
+                    const st = statusCls[d.status] || statusCls.draft;
+                    return `<div class="firm-card" style="cursor:default;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div style="min-width:0;flex:1;">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                    <span style="${st};font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;">${d.status}</span>
+                                    <span style="font-size:14px;font-weight:600;color:#fff;">${d.firm_name || 'CRD ' + d.crd_number}</span>
+                                </div>
+                                <div style="font-size:13px;color:#e0e0e0;margin-bottom:4px;">${d.subject || 'No subject'}</div>
+                                <div style="font-size:12px;color:#888;">
+                                    To: <span style="color:#ccc;">${d.contact_name || 'N/A'}</span>
+                                    ${d.contact_email ? ` &middot; <span style="color:#6366f1;">${d.contact_email}</span>` : ''}
+                                    &middot; Template: ${d.template_id || 'N/A'}
+                                    ${d.fit_score ? ` &middot; Fit: <span style="color:#10b981;">${Number(d.fit_score).toFixed(0)}</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="text-align:right;flex-shrink:0;margin-left:16px;">
+                                <div style="font-size:11px;color:#666;">${d.created_at || ''}</div>
+                                ${d.status === 'draft' ? `
+                                    <div style="display:flex;gap:4px;margin-top:6px;">
+                                        <button class="btn-secondary" style="font-size:10px;padding:4px 8px;" onclick="markDraftStatus(${d.id},'sent').then(loadOutreachHistory)">Mark Sent</button>
+                                    </div>` : ''}
+                                ${d.status === 'sent' ? `
+                                    <div style="display:flex;gap:4px;margin-top:6px;">
+                                        <button class="btn-secondary" style="font-size:10px;padding:4px 8px;" onclick="markDraftStatus(${d.id},'opened').then(loadOutreachHistory)">Opened</button>
+                                        <button class="btn-secondary" style="font-size:10px;padding:4px 8px;" onclick="markDraftStatus(${d.id},'replied').then(loadOutreachHistory)">Replied</button>
+                                    </div>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                resultsEl.innerHTML = '<div class="empty">Error loading outreach history.</div>';
+            }
+        }
+
+        // ── LP Outreach Functions ──
+        let currentLPAllocatorId = null;
+        let currentLPTemplate = null;
+
+        function toggleLPOutreachPanel(allocId, allocName) {
+            const panel = document.getElementById('lp-outreach-panel-' + allocId);
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            currentLPAllocatorId = allocId;
+        }
+
+        function selectLPTemplate(allocId, templateId) {
+            currentLPTemplate = templateId;
+            // Highlight selected chip
+            document.querySelectorAll(`#lp-template-chips-${allocId} .lp-tmpl-chip`).forEach(c => {
+                c.style.background = c.dataset.template === templateId ? '#6366f1' : '';
+                c.style.color = c.dataset.template === templateId ? '#fff' : '';
+            });
+            // Show meta inputs and generate
+            document.getElementById('lp-draft-meta-' + allocId).style.display = 'grid';
+            generateLPDraft(allocId, templateId);
+        }
+
+        async function generateLPDraft(allocId, templateId) {
+            const body = document.getElementById('lp-draft-body-' + allocId);
+            const subject = document.getElementById('lp-draft-subject-' + allocId);
+            const actions = document.getElementById('lp-draft-actions-' + allocId);
+
+            body.style.display = 'block';
+            body.value = 'Generating draft...';
+            subject.style.display = 'block';
+            actions.style.display = 'flex';
+
+            const fundName = document.getElementById('lp-fund-name-' + allocId).value || '';
+            const fundSector = document.getElementById('lp-fund-sector-' + allocId).value || '';
+
+            try {
+                const resp = await fetch(`${API}/api/outreach/lp-draft`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        allocator_id: allocId,
+                        template_id: templateId,
+                        fund_name: fundName,
+                        fund_sector: fundSector,
+                    }),
+                });
+
+                if (!resp.ok) {
+                    body.value = 'LP outreach API not available yet — Keel is building the backend templates. You can manually draft using the template structure below.\n\n' + getLPTemplatePlaceholder(templateId, fundName, fundSector);
+                    document.getElementById('lp-subject-input-' + allocId).value = getLPSubjectPlaceholder(templateId, fundName);
+                    return;
+                }
+
+                const data = await resp.json();
+                body.value = data.body || data.draft || '';
+                document.getElementById('lp-subject-input-' + allocId).value = data.subject || '';
+            } catch (e) {
+                body.value = getLPTemplatePlaceholder(templateId, fundName, fundSector);
+                document.getElementById('lp-subject-input-' + allocId).value = getLPSubjectPlaceholder(templateId, fundName);
+            }
+        }
+
+        function getLPSubjectPlaceholder(templateId, fundName) {
+            const fund = fundName || '[Fund Name]';
+            const subjects = {
+                fund_intro: `Introduction: ${fund} — Investment Opportunity`,
+                co_invest: `Co-Investment Opportunity — ${fund}`,
+                capital_call: `${fund} — Portfolio Update & Upcoming Close`,
+            };
+            return subjects[templateId] || `${fund} — LP Communication`;
+        }
+
+        function getLPTemplatePlaceholder(templateId, fundName, fundSector) {
+            const fund = fundName || '[Fund Name]';
+            const sector = fundSector || '[Sector]';
+            const templates = {
+                fund_intro: `Dear [Allocator Name],\n\nI am reaching out to introduce ${fund}, a ${sector}-focused fund targeting institutional investors seeking exposure to [strategy description].\n\nFund Highlights:\n- Target Return: [X]% net IRR\n- Fund Size: $[X]M\n- Sector Focus: ${sector}\n- Investment Period: [X] years\n- Team: [Key team credentials]\n\nWe believe your portfolio allocation strategy aligns well with our fund thesis, particularly given your existing exposure to [relevant holdings from 13F].\n\nI would welcome the opportunity to discuss how ${fund} complements your current allocation.\n\nBest regards,\n[Your Name]`,
+                co_invest: `Dear [Allocator Name],\n\nWe are pleased to present a co-investment opportunity alongside ${fund} in [Company Name], a leading [description] company.\n\nDeal Summary:\n- Company: [Name]\n- Round: [Series X]\n- Valuation: $[X]M\n- ${fund} Commitment: $[X]M\n- Co-Invest Available: $[X]M\n- Sector: ${sector}\n\nThis opportunity aligns with your portfolio's exposure to ${sector} and related holdings.\n\nPlease let us know if you would like to review the investment materials.\n\nBest regards,\n[Your Name]`,
+                capital_call: `Dear [Allocator Name],\n\nPlease find below the quarterly portfolio update for ${fund}.\n\nPortfolio Summary:\n- NAV: $[X]M\n- Deployed Capital: [X]%\n- Active Positions: [X]\n- Sector Focus: ${sector}\n\nKey Developments:\n- [Development 1]\n- [Development 2]\n\nUpcoming Close:\n- Target Close Date: [Date]\n- Remaining Capacity: $[X]M\n\nPlease contact us with any questions.\n\nBest regards,\n[Your Name]`,
+            };
+            return templates[templateId] || `Draft template for ${fund}`;
+        }
+
+        function copyLPDraft(allocId) {
+            const subject = document.getElementById('lp-subject-input-' + allocId).value;
+            const body = document.getElementById('lp-draft-body-' + allocId).value;
+            navigator.clipboard.writeText(`Subject: ${subject}\n\n${body}`);
+            const btn = event.target;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 1500);
+        }
+
+        function regenerateLPDraft(allocId) {
+            if (currentLPTemplate) generateLPDraft(allocId, currentLPTemplate);
+        }
+
+        // Auto-load outreach data when switching to that tab
+        const origSwitchTab = switchTab;
+        switchTab = function(tab) {
+            origSwitchTab(tab);
+            if (tab === 'outreach') loadOutreachHistory();
+        };
+
+        // ── Allocator Search ──
+        let allocatorOffset = 0;
+        const AL_PER_PAGE = 25;
+
+        // Populate allocator state dropdown from existing states
+        (function populateAllocatorStates() {
+            const stateSelect = document.getElementById('al-state');
+            const mainStates = document.getElementById('f-state');
+            if (mainStates && stateSelect) {
+                Array.from(mainStates.options).forEach(opt => {
+                    if (opt.value) {
+                        const o = document.createElement('option');
+                        o.value = opt.value;
+                        o.textContent = opt.textContent;
+                        stateSelect.appendChild(o);
+                    }
+                });
+            }
+        })();
+
+        let allocatorFitEnabled = false;
+
+        function toggleAllocatorFitScore() {
+            allocatorFitEnabled = !allocatorFitEnabled;
+            document.getElementById('al-fit-toggle').classList.toggle('active', allocatorFitEnabled);
+            document.getElementById('al-fit-context').classList.toggle('active', allocatorFitEnabled);
+        }
+
+        function allocatorFitBadgeClass(score) {
+            if (score >= 60) return 'high';
+            if (score >= 35) return 'medium';
+            return 'low';
+        }
+
+        function renderAllocatorFitBadge(fs) {
+            if (!fs) return '';
+            return `<div class="fit-badge ${allocatorFitBadgeClass(fs.total_score)}">
+                LP ${fs.total_score.toFixed(0)}
+            </div>`;
+        }
+
+        function renderAllocatorFitBreakdown(fs) {
+            if (!fs || fs.total_score === 0) return '';
+            const dims = [
+                {label: 'Strategy', val: fs.strategy_alignment || 0, max: 20},
+                {label: 'Check Size', val: fs.check_size_match || 0, max: 20},
+                {label: 'Allocation', val: fs.allocation_pattern || 0, max: 20},
+                {label: 'Geography', val: fs.geographic_reach || 0, max: 20},
+                {label: 'Gatekeeper', val: fs.gatekeeper_access || 0, max: 20},
+            ];
+            return `<div class="fit-breakdown">
+                ${dims.map(d => `<div class="dim">
+                    <span>${d.label}</span>
+                    <div class="dim-bar"><div class="dim-fill" style="width:${(d.val/d.max*100).toFixed(0)}%"></div></div>
+                    <span>${d.val.toFixed(0)}</span>
+                </div>`).join('')}
+            </div>`;
+        }
+
+        function toggleAllocatorState() {
+            const country = document.getElementById('al-country').value;
+            const stateGroup = document.getElementById('al-state-group');
+            // Only show state filter for US allocators
+            stateGroup.style.display = (!country || country === 'US') ? '' : 'none';
+            if (country && country !== 'US') {
+                document.getElementById('al-state').value = '';
+            }
+        }
+
+        function gatekeeperBadge(score) {
+            if (!score && score !== 0) return '';
+            if (score >= 80) return '<span class="tag" style="background:#064e3b;border-color:#10b981;color:#10b981;">Gatekeeper ★</span>';
+            if (score >= 50) return '<span class="tag" style="background:#1e1a3a;border-color:#8b5cf6;color:#a78bfa;">Likely Gatekeeper</span>';
+            return '';
+        }
+
+        function entityTypeBadge(type) {
+            const colors = {
+                pension: { bg: '#1e3a5f', border: '#3b82f6', color: '#60a5fa', label: 'Pension' },
+                endowment: { bg: '#3b1f2b', border: '#ec4899', color: '#f472b6', label: 'Endowment' },
+                foundation: { bg: '#2d1f3d', border: '#a855f7', color: '#c084fc', label: 'Foundation' },
+                swf: { bg: '#1a3a2a', border: '#10b981', color: '#34d399', label: 'Sovereign Wealth' },
+                family_office: { bg: '#3d2e1a', border: '#f59e0b', color: '#fbbf24', label: 'Family Office' },
+                insurance: { bg: '#1a2e3d', border: '#06b6d4', color: '#22d3ee', label: 'Insurance' },
+            };
+            const c = colors[type] || { bg: '#1a1a2e', border: '#2a2a4a', color: '#aaa', label: type || 'Unknown' };
+            return `<span class="tag" style="background:${c.bg};border-color:${c.border};color:${c.color};">${c.label}</span>`;
+        }
+
+        async function doAllocatorSearch(offset) {
+            allocatorOffset = offset || 0;
+            const resultsEl = document.getElementById('al-results');
+            const statsBar = document.getElementById('al-stats-bar');
+            const pagination = document.getElementById('al-pagination');
+
+            resultsEl.innerHTML = '<div class="empty">Searching allocators...</div>';
+
+            const params = new URLSearchParams();
+            const query = document.getElementById('al-query').value.trim();
+            const entityType = document.getElementById('al-type').value;
+            const aumMin = document.getElementById('al-aum').value;
+            const country = document.getElementById('al-country').value;
+            const state = document.getElementById('al-state').value;
+            const gatekeeper = document.getElementById('al-gatekeeper').value;
+            const sortBy = document.getElementById('al-sort').value;
+
+            if (query) params.set('query', query);
+            if (entityType) params.set('entity_type', entityType);
+            if (aumMin) params.set('aum_min', aumMin);
+            if (country) params.set('country', country);
+            if (state) params.set('state', state);
+            if (gatekeeper) params.set('gatekeeper', gatekeeper);
+            params.set('sort_by', sortBy);
+            params.set('limit', AL_PER_PAGE);
+            params.set('offset', allocatorOffset);
+
+            if (allocatorFitEnabled) {
+                params.set('fit_score', 'true');
+                const sectors = document.getElementById('al-fit-sectors').value.trim();
+                const fundSize = document.getElementById('al-fit-fund-size').value.trim();
+                const strategy = document.getElementById('al-fit-strategy').value;
+                if (sectors) params.set('target_sectors', sectors);
+                if (fundSize) params.set('fund_size', fundSize);
+                if (strategy) params.set('strategy_type', strategy);
+            }
+
+            try {
+                const resp = await fetch(`${API}/api/search/allocators?${params}`);
+                if (!resp.ok) {
+                    resultsEl.innerHTML = '<div class="empty">Allocator search API not available yet — Keel is building the backend. Check back soon.</div>';
+                    statsBar.style.display = 'none';
+                    pagination.style.display = 'none';
+                    return;
+                }
+                const data = await resp.json();
+
+                const total = data.total || 0;
+                const totalPages = Math.ceil(total / AL_PER_PAGE);
+                const currentPage = Math.floor(allocatorOffset / AL_PER_PAGE) + 1;
+
+                document.getElementById('al-total-count').textContent = total.toLocaleString();
+                document.getElementById('al-page-num').textContent = currentPage;
+                document.getElementById('al-page-total').textContent = totalPages;
+                statsBar.style.display = total > 0 ? 'flex' : 'none';
+
+                document.getElementById('al-btn-prev').disabled = allocatorOffset === 0;
+                document.getElementById('al-btn-next').disabled = allocatorOffset + AL_PER_PAGE >= total;
+                pagination.style.display = total > AL_PER_PAGE ? 'flex' : 'none';
+
+                if (!data.results || data.results.length === 0) {
+                    resultsEl.innerHTML = '<div class="empty">No allocators found matching your filters.</div>';
+                    return;
+                }
+
+                resultsEl.innerHTML = data.results.map(a => {
+                    const holdingsInfo = a.holdings_count
+                        ? `<span><span class="label">13F Holdings:</span> ${a.holdings_count.toLocaleString()}</span>`
+                        : '';
+                    const filingDate = a.filing_date
+                        ? `<span><span class="label">Last Filing:</span> ${a.filing_date}</span>`
+                        : '';
+                    const totalValue = a.total_value
+                        ? `<span><span class="label">Total Value:</span> ${formatValue(a.total_value)}</span>`
+                        : '';
+
+                    return `<div class="firm-card" onclick="showAllocatorDetail('${a.crd_number || a.cik || a.id || ''}')">
+                        <div class="firm-top">
+                            <div class="firm-name">${a.name || a.legal_name || 'Unknown'}</div>
+                            <div style="display:flex;gap:12px;align-items:center;">
+                                ${a.allocator_fit_score ? renderAllocatorFitBadge(a.allocator_fit_score) : ''}
+                                <div class="firm-aum">${formatValue(a.aum || a.total_value || 0)}</div>
+                            </div>
+                        </div>
+                        <div class="firm-meta" style="margin-top:8px;">
+                            <span><span class="label">${a.country && a.country !== 'US' ? 'Country:' : 'State:'}</span> ${a.country && a.country !== 'US' ? (a.country_name || a.country) : (a.state || 'N/A')}</span>
+                            ${holdingsInfo}
+                            ${filingDate}
+                            ${totalValue}
+                        </div>
+                        <div class="firm-tags" style="margin-top:10px;">
+                            ${entityTypeBadge(a.entity_type)}
+                            ${gatekeeperBadge(a.gatekeeper_score)}
+                            ${a.top_holdings ? a.top_holdings.slice(0, 5).map(h =>
+                                `<span class="tag">${h.ticker || h.name || h}</span>`
+                            ).join('') : ''}
+                        </div>
+                        ${a.allocator_fit_score ? renderAllocatorFitBreakdown(a.allocator_fit_score) : ''}
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                resultsEl.innerHTML = '<div class="empty">Allocator search API not available yet — Keel is building the backend. Check back soon.</div>';
+                statsBar.style.display = 'none';
+                pagination.style.display = 'none';
+            }
+        }
+
+        function allocatorPrevPage() {
+            if (allocatorOffset >= AL_PER_PAGE) doAllocatorSearch(allocatorOffset - AL_PER_PAGE);
+        }
+
+        function allocatorNextPage() {
+            doAllocatorSearch(allocatorOffset + AL_PER_PAGE);
+        }
+
+        async function showAllocatorDetail(id) {
+            if (!id) return;
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            content.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Loading allocator details...</div>';
+            modal.classList.add('active');
+
+            try {
+                const resp = await fetch(`${API}/api/allocators/${id}`);
+                if (!resp.ok) {
+                    content.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Allocator detail API not available yet.</div>';
+                    return;
+                }
+                const a = await resp.json();
+
+                content.innerHTML = `
+                    <h2>${a.name || a.legal_name || 'Unknown'}</h2>
+                    <p class="subtitle">${a.entity_type ? entityTypeBadge(a.entity_type) : ''} ${gatekeeperBadge(a.gatekeeper_score)} ${a.state || ''}</p>
+                    <div class="detail-grid">
+                        <div><span class="label">AUM</span><br>${formatValue(a.aum || a.total_value || 0)}</div>
+                        <div><span class="label">Entity Type</span><br>${a.entity_type || 'N/A'}</div>
+                        <div><span class="label">State</span><br>${a.state || 'N/A'}</div>
+                        <div><span class="label">13F Holdings</span><br>${(a.holdings_count || 0).toLocaleString()}</div>
+                        <div><span class="label">Total 13F Value</span><br>${formatValue(a.total_value || 0)}</div>
+                        <div><span class="label">Gatekeeper Score</span><br>${a.gatekeeper_score != null ? a.gatekeeper_score + '/100' : 'N/A'}</div>
+                        <div><span class="label">Last Filing</span><br>${a.filing_date || 'N/A'}</div>
+                        <div><span class="label">CIK</span><br>${a.cik || 'N/A'}</div>
+                    </div>
+                    ${a.sector_breakdown && a.sector_breakdown.length > 0 ? `
+                    <h3 style="margin-top:24px;font-size:16px;color:#fff;">Sector Breakdown</h3>
+                    <div style="margin-top:12px;">
+                        ${a.sector_breakdown.map(s => `
+                            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e1e30;font-size:13px;">
+                                <span style="color:#e0e0e0;">${s.sector}</span>
+                                <span style="color:#888;">${s.count} holdings &middot; <span style="color:#6366f1;font-weight:600;">${s.value_display || formatValue(s.value || 0)}</span></span>
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
+                    ${a.top_holdings && a.top_holdings.length > 0 ? `
+                    <h3 style="margin-top:24px;font-size:16px;color:#fff;">Top Holdings</h3>
+                    <div style="margin-top:12px;">
+                        ${a.top_holdings.slice(0, 20).map(h => `
+                            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e30;font-size:13px;">
+                                <span style="color:#e0e0e0;">${h.ticker || h.company_name || 'Unknown'} <span style="color:#666;">${h.company_name || ''}</span></span>
+                                <span style="color:#6366f1;font-weight:600;">${h.market_value_display || formatValue(h.market_value || 0)}</span>
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
+                    ${a.filing_history && a.filing_history.length > 0 ? `
+                    <h3 style="margin-top:24px;font-size:16px;color:#fff;">Filing History</h3>
+                    <div style="margin-top:12px;">
+                        ${a.filing_history.map(f => `
+                            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e1e30;font-size:13px;">
+                                <span style="color:#e0e0e0;">${f.period}</span>
+                                <span style="color:#888;">${f.holdings_count} holdings &middot; <span style="color:#6366f1;">${f.total_value_display || formatValue(f.total_value || 0)}</span></span>
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
+
+                    <div class="detail-section" style="margin-top:24px;">
+                        <h3 style="font-size:16px;color:#fff;margin-bottom:12px;">LP Outreach</h3>
+                        <button class="outreach-btn" id="lp-outreach-btn-${id}" onclick="toggleLPOutreachPanel('${id}', '${(a.name||'').replace(/'/g, "\\'")}')">
+                            <span>Generate LP Outreach</span>
+                        </button>
+                        <div id="lp-outreach-panel-${id}" style="display:none;margin-top:12px;">
+                            <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Select LP Template</div>
+                            <div id="lp-template-chips-${id}" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                                <button class="btn-secondary lp-tmpl-chip" data-template="fund_intro" onclick="selectLPTemplate('${id}','fund_intro')" style="font-size:12px;padding:6px 12px;">Fund Introduction</button>
+                                <button class="btn-secondary lp-tmpl-chip" data-template="co_invest" onclick="selectLPTemplate('${id}','co_invest')" style="font-size:12px;padding:6px 12px;">Co-Investment</button>
+                                <button class="btn-secondary lp-tmpl-chip" data-template="capital_call" onclick="selectLPTemplate('${id}','capital_call')" style="font-size:12px;padding:6px 12px;">Capital Call / Update</button>
+                            </div>
+                            <div id="lp-draft-meta-${id}" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                                <input type="text" id="lp-fund-name-${id}" placeholder="Fund Name (e.g. MAKR)" style="padding:8px 12px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#e0e0e0;font-size:13px;">
+                                <input type="text" id="lp-fund-sector-${id}" placeholder="Sector Focus (e.g. AI Infrastructure)" style="padding:8px 12px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#e0e0e0;font-size:13px;">
+                            </div>
+                            <div id="lp-draft-subject-${id}" style="display:none;margin-bottom:8px;">
+                                <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Subject</div>
+                                <input type="text" id="lp-subject-input-${id}" style="width:100%;padding:8px 12px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#e0e0e0;font-size:13px;">
+                            </div>
+                            <textarea id="lp-draft-body-${id}" style="display:none;width:100%;min-height:200px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:8px;color:#e0e0e0;font-size:13px;padding:12px;resize:vertical;font-family:inherit;" placeholder="Draft will appear here..."></textarea>
+                            <div id="lp-draft-actions-${id}" style="display:none;margin-top:8px;display:flex;gap:8px;">
+                                <button class="btn-secondary" onclick="copyLPDraft('${id}')" style="font-size:12px;padding:6px 14px;">Copy</button>
+                                <button class="btn-primary" onclick="regenerateLPDraft('${id}')" style="font-size:12px;padding:6px 14px;">Regenerate</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                content.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Error loading allocator details.</div>';
+            }
+        }
+
+        async function exportAllocatorCSV() {
+            const params = new URLSearchParams();
+            const query = document.getElementById('al-query').value.trim();
+            const entityType = document.getElementById('al-type').value;
+            const aumMin = document.getElementById('al-aum').value;
+            const country = document.getElementById('al-country').value;
+            const state = document.getElementById('al-state').value;
+            const gatekeeper = document.getElementById('al-gatekeeper').value;
+            const sortBy = document.getElementById('al-sort').value;
+
+            if (query) params.set('query', query);
+            if (entityType) params.set('entity_type', entityType);
+            if (aumMin) params.set('aum_min', aumMin);
+            if (country) params.set('country', country);
+            if (state) params.set('state', state);
+            if (gatekeeper) params.set('gatekeeper', gatekeeper);
+            params.set('sort_by', sortBy);
+
+            try {
+                const resp = await fetch(`${API}/api/search/allocators/export?${params}`);
+                if (!resp.ok) { alert('Export not available yet.'); return; }
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'purebrain-allocators-export.csv';
+                link.click();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('Export failed: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
