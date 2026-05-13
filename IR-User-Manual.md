@@ -69,11 +69,42 @@ PureBrain IR is a browser-based application. No installation required.
 
 URL: http://157.230.191.4:8890/
 
-Browser requirements: Any modern browser — Chrome, Firefox, Safari, or Edge. The interface is optimized for desktop/laptop screens at 1024px width or wider.
+Browser requirements: Any modern browser — Chrome, Firefox, Safari, or Edge. The interface is optimized for desktop/laptop screens at 1024px width or wider, with mobile-responsive layout for tablets and phones.
 
-### 2.2 — First-Time Orientation
+### 2.2 — Account Creation & Login
 
-When you load PureBrain IR, you will see:
+PureBrain IR requires authentication. When you first visit the URL, you will be redirected to the login page.
+
+**Creating an Account:**
+1. On the login page, click the "Create one" link below the sign-in form.
+2. On the registration page, enter:
+   - **Username** — at least 3 characters, lowercase
+   - **Email** — a valid email address
+   - **Password** — at least 8 characters
+   - **Confirm Password** — must match the password field
+3. Click "Create Account."
+4. On success, you will be redirected to the login page after a brief confirmation message.
+
+**Logging In:**
+1. Enter your username and password on the login page.
+2. Click "Sign In."
+3. On successful authentication, you are redirected to the main dashboard.
+
+**Session Management:**
+- Sessions last 7 days. You will remain logged in across browser sessions until the session expires.
+- To log out, navigate to /auth/logout. This destroys your session and redirects to the login page.
+- If your session expires, you will be redirected to the login page on your next visit.
+
+**Pre-Configured Account:**
+A default account is available for initial access:
+- Username: `purebrain`
+- Password: `declaration2026`
+
+It is recommended to create individual accounts for each user via the registration page.
+
+### 2.3 — First-Time Orientation
+
+When you log in to PureBrain IR, you will see:
 
 1. Header bar — displays "PureBrain IR" and a summary of the database: 39,040 SEC-registered firms, 108 13F filers, 384K+ institutional holdings, and Allocator Search.
 2. Tab navigation — five tabs across the top of the main area, each corresponding to a core module:
@@ -88,7 +119,7 @@ When you load PureBrain IR, you will see:
 
 The Firm Search tab loads by default. No data is shown until you click "Search" — this is by design, so you can set your filters first.
 
-### 2.3 — Quick Start: Your First Search
+### 2.4 — Quick Start: Your First Search
 
 To verify the system is working, try this:
 
@@ -102,7 +133,7 @@ For a filtered search:
 2. Click Search.
 3. Results narrow to California-based advisers managing between $1 billion and $10 billion.
 
-### 2.4 — Tab Overview
+### 2.5 — Tab Overview
 
 | Tab | Purpose | Key Action |
 |-----|---------|------------|
@@ -112,7 +143,7 @@ For a filtered search:
 | Outreach | View and manage all outreach drafts (sent, opened, replied) | Status filter → review drafts → track engagement |
 | Allocator Search | Search 20 institutional allocators — pension funds, endowments, sovereign wealth funds | Filter by type/country/AUM → view holdings → LP Fit Score → generate LP outreach |
 
-### 2.5 — Common UI Patterns
+### 2.6 — Common UI Patterns
 
 Across all tabs, these patterns are consistent:
 
@@ -121,10 +152,6 @@ Across all tabs, these patterns are consistent:
 - Export CSV. Available on Firm Search and Allocator Search. Exports the current filtered result set (all pages, not just the visible page).
 - Detail modals. Click any result card to open a modal overlay with the full profile. Modals include tabbed sections for different data categories. Press the X button or click outside the modal to close.
 - AI Fit Score toggle. Available on Firm Search and Allocator Search. When enabled, additional context inputs appear and each result card scores each result by alignment with your fund profile.
-
-### 2.6 — No Login Required
-
-PureBrain IR currently operates without authentication. All data is derived from public SEC filings — no proprietary or restricted data is used. The application loads directly at the URL with full access to all features.
 
 ---
 
@@ -743,7 +770,7 @@ The Allocator Search filter panel has 7 fields plus a Search button:
 | Search by Name | Free text | Matches allocator names (e.g., CalPERS, Harvard, ADIA). Press Enter or click Search. |
 | Entity Type | Public Pension, Endowment, Foundation, Sovereign Wealth Fund, Family Office, Insurance Company | Filters by institutional type. Pension funds and endowments are the most common allocator categories. |
 | AUM Range | $10B+, $50B+, $100B+, $500B+ | Filters by total portfolio value from 13F data. Most allocators manage tens of billions or more, though some smaller systems (e.g., Kentucky Retirement) may fall below the $10B threshold. |
-| Country | All Countries, United States, Canada, Norway, Singapore | Filters by domicile. International allocators include Norges Bank (Norway), CPPIB/Ontario Teachers/PSP/BCI/CDPQ (Canada), and Temasek (Singapore). When a non-US country is selected, the State filter automatically hides. |
+| Country | All Countries, United States, Canada, Norway, Singapore, Australia, Japan, United Kingdom, South Korea, Netherlands, Switzerland, Saudi Arabia, UAE, China, Germany, Sweden | Filters by domicile. International allocators include Norges Bank (Norway), CPPIB/Ontario Teachers/PSP/BCI/CDPQ (Canada), Temasek (Singapore), and others. When a non-US country is selected, the State filter automatically hides. |
 | State | US states | Filters US-based allocators by state (e.g., CA for CalPERS and CalSTRS). Only visible when Country is set to US or All. |
 | Gatekeeper Filter | All Firms / Gatekeepers Only / Non-Gatekeepers Only | Filters based on gatekeeper score (see Chapter 10). |
 | Sort By | AUM (Highest), Gatekeeper Score, Name (A-Z), 13F Holdings Count | Controls result ordering. Default is AUM (Highest). |
@@ -1101,8 +1128,8 @@ This chapter describes the system architecture, data sources, database schema, A
 | Server | Uvicorn (ASGI) |
 | External APIs | SEC EDGAR (10 req/sec), OpenFIGI (25 req/min free tier) |
 | Hosting | DigitalOcean droplet at 157.230.191.4:8890 |
-| CORS | All origins allowed |
-| Authentication | None (public SEC data) |
+| CORS | All origins allowed (credentials enabled) |
+| Authentication | Cookie-based session auth with bcrypt password hashing |
 
 ### 12.3 — Data Sources
 
@@ -1130,6 +1157,8 @@ PureBrain IR uses two SQLite database files:
 | firm_executives | 98,579 | Executive contacts from Form ADV Schedule A/B. Fields: name, title, CRD, control person flag, linked firm CRD. |
 | firm_disclosures | 18,502 | Regulatory, criminal, and civil disclosures from BrokerCheck. Fields: firm CRD, event type, date, description, risk level. |
 | outreach_drafts | variable | Generated email drafts with lifecycle tracking. Fields: firm CRD, template, subject, body, status (draft/sent/opened/replied), timestamps. |
+| ir_users | variable | User accounts. Fields: id, username (UNIQUE), email (UNIQUE), password_hash (bcrypt), created_at. |
+| ir_sessions | variable | Active sessions. Fields: session_id, user_id, username, created_at, expires_at. Sessions expire after 7 days. |
 
 **Database 2: 13F Holdings (purebrain_ir.db in pipeline root, symlinked as holdings_13f.db)**
 
@@ -1190,6 +1219,18 @@ The API server (server.py) exposes the following endpoints via FastAPI at port 8
 
 The api/ directory also contains **fetch_allocators_13f.py** — a specialized ingestion script for 20 allocator-type investors (CalPERS, CalSTRS, Harvard, Yale, Norges Bank, CPPIB, etc.). It sets entity type (pension/endowment/sovereign_wealth) and country/state metadata. Produced 43,073 allocator holdings with 5,959 tickers backfilled.
 
+**Authentication**
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| /login | GET | Login page |
+| /register | GET | Registration page |
+| /auth/login | POST | Authenticate user (JSON: username, password) |
+| /auth/register | POST | Create new account (JSON: username, email, password) |
+| /auth/logout | GET | Destroy session and redirect to login |
+
+All /api/* endpoints below require a valid session cookie (`pbir_session`). Unauthenticated requests return 401.
+
 **Firm Search**
 
 | Endpoint | Method | Purpose |
@@ -1241,7 +1282,7 @@ The api/ directory also contains **fetch_allocators_13f.py** — a specialized i
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
 | GET /api/stats | GET | Database statistics (firm counts, holdings totals) |
-| GET / | GET | Serve the frontend (index.html) |
+| GET / | GET | Serve the frontend (index.html) — requires authenticated session |
 
 ### 12.7 — Scoring Algorithms
 
@@ -1285,6 +1326,7 @@ data/purebrain-ir/
 │
 └── api/                         # API server and scoring
     ├── server.py                # FastAPI application (port 8890)
+    ├── auth.py                  # Authentication module (bcrypt, sessions, user management)
     ├── search_api.py            # Firm search logic (UNION IA + ERA)
     ├── allocator_api.py         # Allocator search and detail
     ├── fit_score.py             # 5-dimension AI Fit Score
@@ -1294,10 +1336,12 @@ data/purebrain-ir/
     ├── outreach_engine.py       # Email templates and draft management
     ├── contact_enrichment.py    # Executive contact enrichment
     ├── fetch_allocators_13f.py  # 20 allocator ingestion
-    ├── purebrain_ir.db          # ADV firms database (adv_firms, era_firms, executives, disclosures)
+    ├── purebrain_ir.db          # Database (firms, executives, disclosures, users, sessions)
     ├── holdings_13f.db          # Symlink → ../purebrain_ir.db
     └── static/
-        └── index.html           # Single-page frontend (108 KB)
+        ├── index.html           # Single-page frontend (108 KB)
+        ├── login.html           # Login page
+        └── register.html        # Registration page
 ```
 
 ### 12.10 — Data Pipeline Operations
