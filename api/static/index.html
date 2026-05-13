@@ -13,16 +13,17 @@
             min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0a1628 0%, #122240 50%, #1a1a2e 100%);
             padding: 24px 32px;
-            border-bottom: 1px solid #2a2a4a;
+            border-bottom: 2px solid #2A93C1;
         }
         .header h1 {
             font-size: 24px;
             color: #fff;
             font-weight: 600;
         }
-        .header h1 span { color: #6366f1; }
+        .header h1 span { color: #2A93C1; }
+        .header .subtitle { color: #F1420B; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
         .header p { color: #888; font-size: 14px; margin-top: 4px; }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
@@ -57,10 +58,10 @@
         }
         .filter-group select:focus, .filter-group input:focus {
             outline: none;
-            border-color: #6366f1;
+            border-color: #2A93C1;
         }
         .search-btn {
-            background: #6366f1;
+            background: #2A93C1;
             color: white;
             border: none;
             padding: 10px 24px;
@@ -70,7 +71,7 @@
             cursor: pointer;
             align-self: end;
         }
-        .search-btn:hover { background: #5254cc; }
+        .search-btn:hover { background: #237FA8; }
 
         /* Stats bar */
         .stats-bar {
@@ -81,7 +82,7 @@
             font-size: 14px;
             color: #888;
         }
-        .stats-bar strong { color: #6366f1; }
+        .stats-bar strong { color: #2A93C1; }
 
         /* Results */
         .results { display: flex; flex-direction: column; gap: 12px; }
@@ -93,7 +94,7 @@
             cursor: pointer;
             transition: border-color 0.2s;
         }
-        .firm-card:hover { border-color: #6366f1; }
+        .firm-card:hover { border-color: #2A93C1; box-shadow: 0 0 12px rgba(42, 147, 193, 0.15); }
         .firm-top {
             display: flex;
             justify-content: space-between;
@@ -108,7 +109,7 @@
         .firm-aum {
             font-size: 20px;
             font-weight: 700;
-            color: #6366f1;
+            color: #F1420B;
             white-space: nowrap;
         }
         .firm-meta {
@@ -119,7 +120,7 @@
             color: #999;
         }
         .firm-meta .label { color: #666; }
-        .firm-meta a { color: #6366f1; text-decoration: none; }
+        .firm-meta a { color: #2A93C1; text-decoration: none; }
         .firm-tags {
             display: flex;
             gap: 6px;
@@ -193,7 +194,7 @@
             color: #e0e0e0;
             margin-top: 2px;
         }
-        .detail-item .value.highlight { color: #6366f1; font-weight: 600; }
+        .detail-item .value.highlight { color: #2A93C1; font-weight: 600; }
         .detail-section {
             margin-top: 20px;
             padding-top: 16px;
@@ -223,7 +224,7 @@
             cursor: pointer;
         }
         .pagination button:disabled { opacity: 0.3; cursor: default; }
-        .pagination button.active { background: #6366f1; border-color: #6366f1; }
+        .pagination button.active { background: #2A93C1; border-color: #2A93C1; }
 
         .loading { text-align: center; padding: 40px; color: #666; }
         .empty { text-align: center; padding: 60px; color: #666; }
@@ -248,7 +249,7 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .fit-toggle .toggle-switch.active { background: #6366f1; }
+        .fit-toggle .toggle-switch.active { background: #2A93C1; }
         .fit-toggle .toggle-switch::after {
             content: '';
             position: absolute;
@@ -277,7 +278,7 @@
             color: #e0e0e0;
             font-size: 13px;
         }
-        .fit-context input:focus { outline: none; border-color: #6366f1; }
+        .fit-context input:focus { outline: none; border-color: #2A93C1; }
         .fit-context label {
             font-size: 11px;
             color: #666;
@@ -322,7 +323,7 @@
         .fit-breakdown .dim-fill {
             height: 100%;
             border-radius: 2px;
-            background: #6366f1;
+            background: #2A93C1;
         }
 
         /* Tabs */
@@ -344,7 +345,7 @@
             transition: color 0.2s, border-color 0.2s;
         }
         .tab-btn:hover { color: #ccc; }
-        .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
+        .tab-btn.active { color: #2A93C1; border-bottom-color: #2A93C1; }
 
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
@@ -377,7 +378,7 @@
             padding: 20px;
             transition: border-color 0.2s;
         }
-        .peer-result-card:hover { border-color: #6366f1; }
+        .peer-result-card:hover { border-color: #2A93C1; box-shadow: 0 0 12px rgba(42, 147, 193, 0.15); }
         .peer-rank {
             font-size: 28px;
             font-weight: 800;
@@ -450,7 +451,7 @@
         .peer-dim-fill {
             height: 100%;
             border-radius: 2px;
-            background: #6366f1;
+            background: #2A93C1;
         }
         .peer-summary {
             display: flex;
@@ -463,7 +464,7 @@
             font-size: 13px;
             color: #888;
         }
-        .peer-summary strong { color: #6366f1; font-size: 16px; }
+        .peer-summary strong { color: #2A93C1; font-size: 16px; }
 
         /* Risk badges */
         .risk-badge {
@@ -501,7 +502,7 @@
             color: #e0e0e0;
             font-size: 13px;
         }
-        .contact-search-bar input:focus { outline: none; border-color: #6366f1; }
+        .contact-search-bar input:focus { outline: none; border-color: #2A93C1; }
         .contact-search-bar select {
             padding: 8px 12px;
             background: #1a1a2e;
@@ -513,7 +514,7 @@
 
         /* Outreach UI */
         .outreach-btn {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #2A93C1 0%, #1B6E94 100%);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -550,8 +551,8 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .template-chip:hover { border-color: #6366f1; color: #ccc; }
-        .template-chip.active { background: #6366f1; border-color: #6366f1; color: white; }
+        .template-chip:hover { border-color: #2A93C1; color: #ccc; }
+        .template-chip.active { background: #2A93C1; border-color: #2A93C1; color: white; }
         .draft-editor {
             width: 100%;
             min-height: 200px;
@@ -565,7 +566,7 @@
             line-height: 1.6;
             resize: vertical;
         }
-        .draft-editor:focus { outline: none; border-color: #6366f1; }
+        .draft-editor:focus { outline: none; border-color: #2A93C1; }
         .draft-meta {
             display: flex;
             gap: 12px;
@@ -580,7 +581,7 @@
             color: #e0e0e0;
             font-size: 13px;
         }
-        .draft-meta input:focus { outline: none; border-color: #6366f1; }
+        .draft-meta input:focus { outline: none; border-color: #2A93C1; }
         .draft-actions {
             display: flex;
             gap: 8px;
@@ -596,15 +597,81 @@
             border: none;
         }
         .btn-secondary { background: #1a1a2e; color: #888; border: 1px solid #2a2a4a !important; }
-        .btn-secondary:hover { color: #ccc; border-color: #6366f1 !important; }
-        .btn-primary { background: #6366f1; color: white; }
-        .btn-primary:hover { background: #5254cc; }
+        .btn-secondary:hover { color: #ccc; border-color: #2A93C1 !important; }
+        .btn-primary { background: #2A93C1; color: white; }
+        .btn-primary:hover { background: #237FA8; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header { padding: 16px; }
+            .header h1 { font-size: 20px; }
+            .container { padding: 12px; }
+
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                gap: 0;
+            }
+            .tabs::-webkit-scrollbar { display: none; }
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+                padding: 14px;
+                gap: 12px;
+            }
+            .filter-group[style*="grid-column"] { grid-column: auto !important; }
+
+            .peer-filters-grid {
+                grid-template-columns: 1fr;
+            }
+            .peer-filters-row2 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .fit-context { grid-template-columns: 1fr; }
+
+            .detail-grid { grid-template-columns: 1fr; }
+
+            .modal {
+                width: 95%;
+                padding: 20px;
+                margin-bottom: 20px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            .modal-overlay { padding-top: 20px; }
+
+            .contact-search-bar {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .firm-top { flex-direction: column; gap: 8px; }
+            .firm-meta { gap: 12px; }
+            .contact-row { flex-direction: column; gap: 8px; }
+
+            .peer-summary { flex-direction: column; gap: 12px; }
+            .peer-meta-row { flex-wrap: wrap; }
+            .peer-score-dims { flex-wrap: wrap; }
+
+            .draft-meta { flex-direction: column; }
+
+            .stats-bar { flex-direction: column; gap: 8px; align-items: flex-start; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Pure<span>Brain</span> IR</h1>
-        <p>AI Investor Intelligence — 39,040 SEC-registered firms | 108 13F filers | 384K+ holdings | Allocator Search</p>
+        <div class="subtitle">AI-Powered Investor Intelligence</div>
+        <p>39,040 SEC-registered firms | 108 13F filers | 384K+ holdings | Allocator Search</p>
     </div>
 
     <div class="container">
@@ -711,7 +778,7 @@
         <div class="stats-bar" id="stats-bar" style="display:none">
             <span><strong id="total-count">0</strong> firms found</span>
             <span>
-                <button onclick="exportCSV()" style="background:#1a1a2e;border:1px solid #2a2a4a;color:#6366f1;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:12px;">Export CSV</button>
+                <button onclick="exportCSV()" style="background:#1a1a2e;border:1px solid #2a2a4a;color:#2A93C1;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:12px;">Export CSV</button>
                 Page <strong id="page-num">1</strong> of <strong id="page-total">1</strong>
             </span>
         </div>
@@ -876,8 +943,20 @@
                     <option value="">All Countries</option>
                     <option value="US">United States</option>
                     <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
                     <option value="NO">Norway</option>
                     <option value="SG">Singapore</option>
+                    <option value="JP">Japan</option>
+                    <option value="CH">Switzerland</option>
+                    <option value="DE">Germany</option>
+                    <option value="AU">Australia</option>
+                    <option value="AE">UAE</option>
+                    <option value="SA">Saudi Arabia</option>
+                    <option value="KW">Kuwait</option>
+                    <option value="QA">Qatar</option>
+                    <option value="KR">South Korea</option>
+                    <option value="HK">Hong Kong</option>
+                    <option value="CN">China</option>
                 </select>
             </div>
             <div class="filter-group" id="al-state-group">
@@ -934,7 +1013,7 @@
         <div class="stats-bar" id="al-stats-bar" style="display:none">
             <span><strong id="al-total-count">0</strong> allocators found</span>
             <span>
-                <button onclick="exportAllocatorCSV()" style="background:#1a1a2e;border:1px solid #2a2a4a;color:#6366f1;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:12px;">Export CSV</button>
+                <button onclick="exportAllocatorCSV()" style="background:#1a1a2e;border:1px solid #2a2a4a;color:#2A93C1;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:12px;">Export CSV</button>
                 Page <strong id="al-page-num">1</strong> of <strong id="al-page-total">1</strong>
             </span>
         </div>
@@ -959,9 +1038,6 @@
     </div>
 
     <script>
-        // API base URL — configure this for deployment
-        // For Netlify deploy: set to the public API URL (e.g. https://ir.purebrain.ai)
-        // For local dev: leave empty (same-origin)
         const API = window.PUREBRAIN_IR_API || '';
         let currentOffset = 0;
         const PER_PAGE = 25;
@@ -1104,7 +1180,7 @@
                     <div class="contact-row">
                         <span class="phone">${firm.phone || 'No phone'}</span>
                         <span>${firm.address_display || ''}</span>
-                        ${firm.key_executives && firm.key_executives.length > 0 ? `<span style="color:#6366f1;font-size:12px;">${firm.key_executives.map(e => e.name).join(' · ')}</span>` : ''}
+                        ${firm.key_executives && firm.key_executives.length > 0 ? `<span style="color:#2A93C1;font-size:12px;">${firm.key_executives.map(e => e.name).join(' · ')}</span>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -1250,8 +1326,8 @@
                 <div class="detail-section" style="font-size:12px; color:#666; display:flex; gap:16px; flex-wrap:wrap;">
                     <span>Filing: ${f.filing_date || 'N/A'}</span>
                     <span>Form: ${f.form_version || 'N/A'}</span>
-                    ${f.cik_number ? `<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${f.cik_number}&type=13F&dateb=&owner=include&count=10" target="_blank" style="color:#6366f1;text-decoration:none;">13F Filings</a>` : ''}
-                    <a href="https://adviserinfo.sec.gov/firm/summary/${f.crd_number}" target="_blank" style="color:#6366f1;text-decoration:none;">IAPD Profile</a>
+                    ${f.cik_number ? `<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${f.cik_number}&type=13F&dateb=&owner=include&count=10" target="_blank" style="color:#2A93C1;text-decoration:none;">13F Filings</a>` : ''}
+                    <a href="https://adviserinfo.sec.gov/firm/summary/${f.crd_number}" target="_blank" style="color:#2A93C1;text-decoration:none;">IAPD Profile</a>
                 </div>
             `;
             document.getElementById('modal').classList.add('active');
@@ -1283,7 +1359,7 @@
                                         ${c.brokercheck_url ? `<a href="${c.brokercheck_url}" target="_blank" onclick="event.stopPropagation()" style="color:#10b981;font-size:10px;text-decoration:none;padding:3px 7px;background:#10b98115;border:1px solid #10b98133;border-radius:4px;" title="FINRA BrokerCheck">BrokerCheck</a>` : ''}
                                     </div>
                                 </div>
-                                ${c.email_guess ? `<div style="margin-top:6px;font-size:11px;"><span style="color:#666;">Email:</span> <span style="color:#6366f1;">${c.email_guess}</span> <span style="color:#555;font-size:9px;background:#1e1e30;padding:1px 5px;border-radius:3px;">${c.email_confidence}</span></div>` : ''}
+                                ${c.email_guess ? `<div style="margin-top:6px;font-size:11px;"><span style="color:#666;">Email:</span> <span style="color:#2A93C1;">${c.email_guess}</span> <span style="color:#555;font-size:9px;background:#1e1e30;padding:1px 5px;border-radius:3px;">${c.email_confidence}</span></div>` : ''}
                                 ${c.individual_crd ? `<div style="margin-top:2px;font-size:10px;color:#555;">CRD: ${c.individual_crd}</div>` : ''}
                             </div>
                         `).join('')
@@ -1406,7 +1482,7 @@
                             <span>Portfolio: <strong>${formatValue(r.total_portfolio_value)}</strong></span>
                             ${r.aum_display !== 'N/A' ? `<span>AUM: <strong>${r.aum_display}</strong></span>` : ''}
                             ${r.state ? `<span>${r.state}</span>` : ''}
-                            ${r.crd_number ? `<span style="color:#6366f1;">CRD: ${r.crd_number}</span>` : ''}
+                            ${r.crd_number ? `<span style="color:#2A93C1;">CRD: ${r.crd_number}</span>` : ''}
                             ${r.cik ? `<span style="color:#666;">CIK: ${r.cik}</span>` : ''}
                         </div>
                         <div class="peer-score-dims">${dimHtml}</div>
@@ -1503,13 +1579,13 @@
                             <div style="font-size:13px;color:#888;margin-top:2px;">${c.title || ''}</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-size:14px;font-weight:600;color:#6366f1;">${c.firm_aum_display}</div>
+                            <div style="font-size:14px;font-weight:600;color:#2A93C1;">${c.firm_aum_display}</div>
                         </div>
                     </div>
                     <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#888;">
                         <span style="color:#ccc;font-weight:500;">${c.firm_name || 'Unknown Firm'}</span>
                         ${c.firm_city && c.firm_state ? `<span>${c.firm_city}, ${c.firm_state}</span>` : c.firm_state ? `<span>${c.firm_state}</span>` : ''}
-                        ${c.firm_crd ? `<span style="color:#6366f1;">CRD: ${c.firm_crd}</span>` : ''}
+                        ${c.firm_crd ? `<span style="color:#2A93C1;">CRD: ${c.firm_crd}</span>` : ''}
                     </div>
                     <div style="display:flex;gap:8px;margin-top:8px;">
                         ${c.linkedin_url ? `<a href="${c.linkedin_url}" target="_blank" onclick="event.stopPropagation()" style="color:#0a66c2;font-size:11px;text-decoration:none;padding:4px 10px;background:#0a66c215;border:1px solid #0a66c233;border-radius:5px;">LinkedIn</a>` : ''}
@@ -1601,7 +1677,7 @@
                 const infoEl = document.getElementById('draft-info-' + crd);
                 infoEl.style.display = 'block';
                 infoEl.innerHTML = `<span>To: <strong style="color:#e0e0e0;">${draft.contact_name}</strong></span>`
-                    + (draft.contact_email ? ` &middot; <span style="color:#6366f1;">${draft.contact_email}</span>` : '')
+                    + (draft.contact_email ? ` &middot; <span style="color:#2A93C1;">${draft.contact_email}</span>` : '')
                     + (draft.fit_score ? ` &middot; <span>Fit: <strong style="color:#10b981;">${draft.fit_score.toFixed(0)}</strong>/100</span>` : '')
                     + ` &middot; <span style="color:#555;">Draft #${draft.id}</span>`;
 
@@ -1667,11 +1743,11 @@
 
                 // Stats cards
                 const statsEl = document.getElementById('outreach-stats-cards');
-                const statusColors = {draft: '#6366f1', sent: '#eab308', opened: '#f97316', replied: '#10b981'};
+                const statusColors = {draft: '#2A93C1', sent: '#eab308', opened: '#f97316', replied: '#10b981'};
                 const byStatus = statsData.by_status || {};
                 statsEl.innerHTML = `
                     <div style="padding:12px 16px;background:#12121a;border:1px solid #1e1e30;border-radius:10px;min-width:80px;text-align:center;">
-                        <div style="font-size:22px;font-weight:700;color:#6366f1;">${statsData.total_drafts || 0}</div>
+                        <div style="font-size:22px;font-weight:700;color:#2A93C1;">${statsData.total_drafts || 0}</div>
                         <div style="font-size:11px;color:#666;text-transform:uppercase;">Total</div>
                     </div>
                     ${['draft','sent','opened','replied'].map(s =>
@@ -1701,7 +1777,7 @@
                                 <div style="font-size:13px;color:#e0e0e0;margin-bottom:4px;">${d.subject || 'No subject'}</div>
                                 <div style="font-size:12px;color:#888;">
                                     To: <span style="color:#ccc;">${d.contact_name || 'N/A'}</span>
-                                    ${d.contact_email ? ` &middot; <span style="color:#6366f1;">${d.contact_email}</span>` : ''}
+                                    ${d.contact_email ? ` &middot; <span style="color:#2A93C1;">${d.contact_email}</span>` : ''}
                                     &middot; Template: ${d.template_id || 'N/A'}
                                     ${d.fit_score ? ` &middot; Fit: <span style="color:#10b981;">${Number(d.fit_score).toFixed(0)}</span>` : ''}
                                 </div>
@@ -1740,7 +1816,7 @@
             currentLPTemplate = templateId;
             // Highlight selected chip
             document.querySelectorAll(`#lp-template-chips-${allocId} .lp-tmpl-chip`).forEach(c => {
-                c.style.background = c.dataset.template === templateId ? '#6366f1' : '';
+                c.style.background = c.dataset.template === templateId ? '#2A93C1' : '';
                 c.style.color = c.dataset.template === templateId ? '#fff' : '';
             });
             // Show meta inputs and generate
@@ -1901,7 +1977,7 @@
         function gatekeeperBadge(score) {
             if (!score && score !== 0) return '';
             if (score >= 80) return '<span class="tag" style="background:#064e3b;border-color:#10b981;color:#10b981;">Gatekeeper ★</span>';
-            if (score >= 50) return '<span class="tag" style="background:#1e1a3a;border-color:#8b5cf6;color:#a78bfa;">Likely Gatekeeper</span>';
+            if (score >= 50) return '<span class="tag" style="background:#1a2e3d;border-color:#2A93C1;color:#5BB8D4;">Likely Gatekeeper</span>';
             return '';
         }
 
@@ -1958,7 +2034,7 @@
             try {
                 const resp = await fetch(`${API}/api/search/allocators?${params}`);
                 if (!resp.ok) {
-                    resultsEl.innerHTML = '<div class="empty">Allocator search API not available yet — Keel is building the backend. Check back soon.</div>';
+                    resultsEl.innerHTML = '<div class="empty">No allocators found. Try adjusting your search filters.</div>';
                     statsBar.style.display = 'none';
                     pagination.style.display = 'none';
                     return;
@@ -2019,7 +2095,7 @@
                     </div>`;
                 }).join('');
             } catch (e) {
-                resultsEl.innerHTML = '<div class="empty">Allocator search API not available yet — Keel is building the backend. Check back soon.</div>';
+                resultsEl.innerHTML = '<div class="empty">No allocators found. Try adjusting your search filters.</div>';
                 statsBar.style.display = 'none';
                 pagination.style.display = 'none';
             }
@@ -2043,7 +2119,7 @@
             try {
                 const resp = await fetch(`${API}/api/allocators/${id}`);
                 if (!resp.ok) {
-                    content.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Allocator detail API not available yet.</div>';
+                    content.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Could not load allocator details. Please try again.</div>';
                     return;
                 }
                 const a = await resp.json();
@@ -2067,7 +2143,7 @@
                         ${a.sector_breakdown.map(s => `
                             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e1e30;font-size:13px;">
                                 <span style="color:#e0e0e0;">${s.sector}</span>
-                                <span style="color:#888;">${s.count} holdings &middot; <span style="color:#6366f1;font-weight:600;">${s.value_display || formatValue(s.value || 0)}</span></span>
+                                <span style="color:#888;">${s.count} holdings &middot; <span style="color:#2A93C1;font-weight:600;">${s.value_display || formatValue(s.value || 0)}</span></span>
                             </div>
                         `).join('')}
                     </div>` : ''}
@@ -2077,7 +2153,7 @@
                         ${a.top_holdings.slice(0, 20).map(h => `
                             <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e30;font-size:13px;">
                                 <span style="color:#e0e0e0;">${h.ticker || h.company_name || 'Unknown'} <span style="color:#666;">${h.company_name || ''}</span></span>
-                                <span style="color:#6366f1;font-weight:600;">${h.market_value_display || formatValue(h.market_value || 0)}</span>
+                                <span style="color:#2A93C1;font-weight:600;">${h.market_value_display || formatValue(h.market_value || 0)}</span>
                             </div>
                         `).join('')}
                     </div>` : ''}
@@ -2087,7 +2163,7 @@
                         ${a.filing_history.map(f => `
                             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e1e30;font-size:13px;">
                                 <span style="color:#e0e0e0;">${f.period}</span>
-                                <span style="color:#888;">${f.holdings_count} holdings &middot; <span style="color:#6366f1;">${f.total_value_display || formatValue(f.total_value || 0)}</span></span>
+                                <span style="color:#888;">${f.holdings_count} holdings &middot; <span style="color:#2A93C1;">${f.total_value_display || formatValue(f.total_value || 0)}</span></span>
                             </div>
                         `).join('')}
                     </div>` : ''}

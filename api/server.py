@@ -6,13 +6,16 @@ FastAPI wrapper around search_api.py
 Run: uvicorn server:app --host 0.0.0.0 --port 8890
 """
 
+import os
 from pathlib import Path
 
-from fastapi import FastAPI, Query, Body
+from fastapi import FastAPI, Query, Body, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from typing import Optional
+import secrets
 
 from search_api import SearchFilters, search_firms, get_firm_detail, get_filter_options, export_csv
 from fit_score import FitContext, compute_fit_score, batch_score
@@ -22,10 +25,30 @@ from gatekeeper import compute_gatekeeper_score, search_gatekeepers
 from allocator_fit_score import FundContext, compute_allocator_fit_score, batch_score_allocators
 from outreach_engine import generate_lp_draft
 
+# Authentication
+security = HTTPBasic()
+
+AUTH_USERNAME = os.environ.get("PUREBRAIN_IR_USER", "purebrain")
+AUTH_PASSWORD = os.environ.get("PUREBRAIN_IR_PASS", "declaration2026")
+
+
+def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_user = secrets.compare_digest(credentials.username.encode(), AUTH_USERNAME.encode())
+    correct_pass = secrets.compare_digest(credentials.password.encode(), AUTH_PASSWORD.encode())
+    if not (correct_user and correct_pass):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+
 app = FastAPI(
     title="PureBrain IR API",
     version="0.1.0",
     description="AI Investor Intelligence — Search SEC-registered investment advisers",
+    dependencies=[Depends(verify_credentials)],
 )
 
 app.add_middleware(
