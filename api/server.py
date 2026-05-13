@@ -49,6 +49,9 @@ app = FastAPI(
     version="0.1.0",
     description="AI Investor Intelligence — Search SEC-registered investment advisers",
     dependencies=[Depends(verify_credentials)],
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 app.add_middleware(
@@ -626,5 +629,3 @@ async def root():
     return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
-# Mount static files (must be after route definitions)
-app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")

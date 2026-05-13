@@ -1850,7 +1850,7 @@
                 });
 
                 if (!resp.ok) {
-                    body.value = 'LP outreach API not available yet — Keel is building the backend templates. You can manually draft using the template structure below.\n\n' + getLPTemplatePlaceholder(templateId, fundName, fundSector);
+                    body.value = 'Could not generate draft. Please check your inputs and try again.\n\n' + getLPTemplatePlaceholder(templateId, fundName, fundSector);
                     document.getElementById('lp-subject-input-' + allocId).value = getLPSubjectPlaceholder(templateId, fundName);
                     return;
                 }
@@ -2221,7 +2221,7 @@
 
             try {
                 const resp = await fetch(`${API}/api/search/allocators/export?${params}`);
-                if (!resp.ok) { alert('Export not available yet.'); return; }
+                if (!resp.ok) { alert('Export failed. Please try again.'); return; }
                 const blob = await resp.blob();
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
