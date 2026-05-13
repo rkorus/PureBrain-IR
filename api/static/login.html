@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PureBrain IR — Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .auth-header h1 {
+            font-size: 28px;
+            color: #fff;
+            font-weight: 600;
+        }
+        .auth-header h1 span { color: #2A93C1; }
+        .auth-header .subtitle {
+            color: #F1420B;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        .auth-header p {
+            color: #888;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .auth-card {
+            background: #12121a;
+            border: 1px solid #1e1e30;
+            border-radius: 12px;
+            padding: 32px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #2A93C1;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #2A93C1 0%, #1B6E94 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .submit-btn:hover { opacity: 0.9; }
+        .submit-btn:disabled { opacity: 0.5; cursor: default; }
+        .error-msg {
+            background: #2d1215;
+            border: 1px solid #991b1b;
+            color: #fca5a5;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #888;
+        }
+        .auth-footer a {
+            color: #2A93C1;
+            text-decoration: none;
+        }
+        .auth-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Pure<span>Brain</span> IR</h1>
+            <div class="subtitle">AI-Powered Investor Intelligence</div>
+            <p>Sign in to continue</p>
+        </div>
+        <div class="auth-card">
+            <div class="error-msg" id="error-msg"></div>
+            <form id="login-form" onsubmit="doLogin(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required autocomplete="username" autofocus>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="submit-btn" id="submit-btn">Sign In</button>
+            </form>
+        </div>
+        <div class="auth-footer">
+            Don't have an account? <a href="/register">Create one</a>
+        </div>
+    </div>
+    <script>
+        async function doLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const errEl = document.getElementById('error-msg');
+            errEl.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+
+            try {
+                const resp = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value,
+                    }),
+                });
+                const data = await resp.json();
+                if (data.error) {
+                    errEl.textContent = data.error;
+                    errEl.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Sign In';
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                errEl.textContent = 'Connection error. Please try again.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        }
+    </script>
+</body>
+</html>

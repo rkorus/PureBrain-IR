@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
 """
-PureBrain IR — API Server (Sprint 1B)
-FastAPI wrapper around search_api.py
+PureBrain IR — API Server
+FastAPI wrapper around search_api.py with cookie-based session auth.
 
 Run: uvicorn server:app --host 0.0.0.0 --port 8890
 """
 
-import os
 from pathlib import Path
 
-from fastapi import FastAPI, Query, Body, Depends, HTTPException, status
+from fastapi import FastAPI, Query, Body, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
 from typing import Optional
-import secrets
 
 from search_api import SearchFilters, search_firms, get_firm_detail, get_filter_options, export_csv
 from fit_score import FitContext, compute_fit_score, batch_score
@@ -24,31 +20,18 @@ from allocator_api import AllocatorFilters, search_allocators, get_allocator_det
 from gatekeeper import compute_gatekeeper_score, search_gatekeepers
 from allocator_fit_score import FundContext, compute_allocator_fit_score, batch_score_allocators
 from outreach_engine import generate_lp_draft
+from auth import (
+    register_user, authenticate_user, create_session,
+    validate_session, destroy_session, SESSION_MAX_AGE,
+)
 
-# Authentication
-security = HTTPBasic()
-
-AUTH_USERNAME = os.environ.get("PUREBRAIN_IR_USER", "purebrain")
-AUTH_PASSWORD = os.environ.get("PUREBRAIN_IR_PASS", "declaration2026")
-
-
-def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_user = secrets.compare_digest(credentials.username.encode(), AUTH_USERNAME.encode())
-    correct_pass = secrets.compare_digest(credentials.password.encode(), AUTH_PASSWORD.encode())
-    if not (correct_user and correct_pass):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
-
+STATIC_DIR = Path(__file__).parent / "static"
+COOKIE_NAME = "pbir_session"
 
 app = FastAPI(
     title="PureBrain IR API",
-    version="0.1.0",
+    version="0.2.0",
     description="AI Investor Intelligence — Search SEC-registered investment advisers",
-    dependencies=[Depends(verify_credentials)],
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
@@ -59,7 +42,109 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
+
+
+# ── Auth helpers ──
+
+def _get_session_user(request: Request) -> dict | None:
+    """Extract and validate session from cookie. Returns user dict or None."""
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        return None
+    return validate_session(token)
+
+
+def _require_auth(request: Request) -> dict:
+    """Require valid session. Raises 401 for API calls, redirects for pages."""
+    user = _get_session_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
+
+
+def _set_session_cookie(response, token: str):
+    """Set session cookie with proper security flags."""
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        max_age=SESSION_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        secure=False,  # Flip to True when HTTPS is live
+    )
+    return response
+
+
+# ── Auth routes (public) ──
+
+@app.get("/login")
+async def login_page(request: Request):
+    """Serve login page. Redirect to / if already authenticated."""
+    if _get_session_user(request):
+        return RedirectResponse(url="/", status_code=302)
+    return FileResponse(STATIC_DIR / "login.html")
+
+
+@app.get("/register")
+async def register_page(request: Request):
+    """Serve registration page. Redirect to / if already authenticated."""
+    if _get_session_user(request):
+        return RedirectResponse(url="/", status_code=302)
+    return FileResponse(STATIC_DIR / "register.html")
+
+
+@app.post("/auth/login")
+async def auth_login(request: Request):
+    """Authenticate user and set session cookie."""
+    body = await request.json()
+    username = body.get("username", "")
+    password = body.get("password", "")
+
+    result = authenticate_user(username, password)
+    if "error" in result:
+        return JSONResponse(content=result, status_code=401)
+
+    token = create_session(result["user_id"], result["username"])
+    response = JSONResponse(content={"success": True, "username": result["username"]})
+    return _set_session_cookie(response, token)
+
+
+@app.post("/auth/register")
+async def auth_register(request: Request):
+    """Register a new user."""
+    body = await request.json()
+    username = body.get("username", "")
+    email = body.get("email", "")
+    password = body.get("password", "")
+
+    result = register_user(username, email, password)
+    if "error" in result:
+        return JSONResponse(content=result, status_code=400)
+
+    return JSONResponse(content={"success": True, "username": result["username"]})
+
+
+@app.get("/auth/logout")
+async def auth_logout(request: Request):
+    """Destroy session and redirect to login."""
+    token = request.cookies.get(COOKIE_NAME)
+    if token:
+        destroy_session(token)
+    response = RedirectResponse(url="/login", status_code=302)
+    response.delete_cookie(key=COOKIE_NAME)
+    return response
+
+
+# ── Protected app routes ──
+
+@app.get("/")
+async def root(request: Request):
+    """Serve the search UI (requires auth)."""
+    if not _get_session_user(request):
+        return RedirectResponse(url="/login", status_code=302)
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 def _build_filters(
@@ -77,8 +162,11 @@ def _build_filters(
     )
 
 
+# ── API routes (all require auth via cookie) ──
+
 @app.get("/api/search/firms")
 async def search(
+    request: Request,
     state: Optional[str] = Query(None, description="2-letter state code"),
     city: Optional[str] = Query(None),
     country: Optional[str] = Query(None),
@@ -92,13 +180,13 @@ async def search(
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
     firm_type: str = Query("all", description="all|ia|era"),
-    # AI Fit Score parameters
     fit_score: bool = Query(False, description="Enable AI Fit Score computation"),
-    target_tickers: Optional[str] = Query(None, description="Comma-separated target tickers, e.g. AAPL,MSFT,NVDA"),
-    target_sector: Optional[str] = Query(None, description="Target sector, e.g. Technology"),
+    target_tickers: Optional[str] = Query(None, description="Comma-separated target tickers"),
+    target_sector: Optional[str] = Query(None, description="Target sector"),
     target_raise_size: Optional[float] = Query(None, description="Target fundraise size in dollars"),
 ):
-    """Search investment adviser firms with ally's 5 Irwin filters + text search."""
+    """Search investment adviser firms."""
+    _require_auth(request)
     filters = _build_filters(
         state=state, city=city, country=country, client_type=client_type,
         aum_min=aum_min, aum_max=aum_max, service=service, query=query,
@@ -107,7 +195,6 @@ async def search(
     )
     data = search_firms(filters)
 
-    # Compute AI Fit Score if requested
     if fit_score:
         ctx = FitContext(
             target_tickers=target_tickers.split(",") if target_tickers else [],
@@ -123,7 +210,6 @@ async def search(
             score = compute_fit_score(firm["crd_number"], ctx)
             firm["fit_score"] = asdict(score)
 
-        # Only re-sort by fit score if user explicitly selected fit_score sort
         if sort_by == "fit_score":
             data["results"].sort(key=lambda f: f.get("fit_score", {}).get("total_score", 0), reverse=(sort_dir.upper() == "DESC"))
 
@@ -132,6 +218,7 @@ async def search(
 
 @app.get("/api/search/export")
 async def search_export(
+    request: Request,
     state: Optional[str] = Query(None),
     city: Optional[str] = Query(None),
     country: Optional[str] = Query(None),
@@ -145,6 +232,7 @@ async def search_export(
     firm_type: str = Query("all"),
 ):
     """Export search results as CSV download."""
+    _require_auth(request)
     from fastapi.responses import Response
 
     filters = _build_filters(
@@ -161,13 +249,13 @@ async def search_export(
 
 
 @app.get("/api/firms/{crd_number}")
-async def firm_detail(crd_number: str):
+async def firm_detail(request: Request, crd_number: str):
     """Get full firm profile by CRD number."""
+    _require_auth(request)
     firm = get_firm_detail(crd_number)
     if not firm:
         return JSONResponse(status_code=404, content={"error": "Firm not found"})
 
-    # Add disclosure summary if available
     import sqlite3
     db_path = Path(__file__).parent / "purebrain_ir.db"
     conn = sqlite3.connect(str(db_path))
@@ -189,6 +277,7 @@ async def firm_detail(crd_number: str):
 
 @app.get("/api/fit-score/{crd_number}")
 async def fit_score_detail(
+    request: Request,
     crd_number: str,
     target_tickers: Optional[str] = Query(None),
     target_sector: Optional[str] = Query(None),
@@ -199,6 +288,7 @@ async def fit_score_detail(
     target_raise_size: Optional[float] = Query(None),
 ):
     """Compute AI Fit Score for a single firm."""
+    _require_auth(request)
     from dataclasses import asdict
     ctx = FitContext(
         target_tickers=target_tickers.split(",") if target_tickers else [],
@@ -214,8 +304,9 @@ async def fit_score_detail(
 
 
 @app.get("/api/firms/{crd_number}/contacts")
-async def firm_contacts(crd_number: str):
+async def firm_contacts(request: Request, crd_number: str):
     """Get enriched executive contacts for a firm by CRD number."""
+    _require_auth(request)
     from contact_enrichment import enrich_firm_contacts
 
     data = enrich_firm_contacts(crd_number)
@@ -233,21 +324,20 @@ async def firm_contacts(crd_number: str):
 
 
 @app.get("/api/firms/{crd_number}/disclosures")
-async def firm_disclosures(crd_number: str):
+async def firm_disclosures(request: Request, crd_number: str):
     """Get regulatory/criminal/civil disclosure history for a firm."""
+    _require_auth(request)
     import sqlite3
 
     db_path = Path(__file__).parent / "purebrain_ir.db"
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
 
-    # Get summary
     summary = conn.execute(
         "SELECT * FROM firm_disclosure_summary WHERE crd_number = ?",
         (crd_number,),
     ).fetchone()
 
-    # Get detailed disclosures
     disclosures = conn.execute(
         "SELECT disclosure_type, initiator_type, initiated_by, principal_sanction, "
         "date_initiated, case_number, allegations, status, resolution, "
@@ -273,14 +363,16 @@ async def firm_disclosures(crd_number: str):
 
 @app.get("/api/peer-analysis")
 async def peer_analysis(
-    target_ticker: Optional[str] = Query(None, description="Your company's ticker (excluded from results unless include_target_holders=true)"),
-    peer_tickers: str = Query(..., description="Comma-separated peer tickers, e.g. SNOW,MDB,DDOG"),
-    target_sector: Optional[str] = Query(None, description="Target sector for affinity scoring, e.g. Technology"),
-    min_overlap: int = Query(1, ge=1, description="Minimum peers held to appear in results"),
-    include_target_holders: bool = Query(False, description="Include investors who already hold the target"),
+    request: Request,
+    target_ticker: Optional[str] = Query(None),
+    peer_tickers: str = Query(..., description="Comma-separated peer tickers"),
+    target_sector: Optional[str] = Query(None),
+    min_overlap: int = Query(1, ge=1),
+    include_target_holders: bool = Query(False),
     limit: int = Query(50, ge=1, le=200),
 ):
     """Peer-based investor targeting: find investors who hold your peers."""
+    _require_auth(request)
     query = PeerQuery(
         target_ticker=target_ticker,
         peer_tickers=[t.strip() for t in peer_tickers.split(",") if t.strip()],
@@ -293,14 +385,16 @@ async def peer_analysis(
 
 
 @app.get("/api/outreach/templates")
-async def outreach_templates():
+async def outreach_templates(request: Request):
     """List available outreach email templates."""
+    _require_auth(request)
     from outreach_engine import list_templates
     return {"templates": list_templates()}
 
 
 @app.post("/api/outreach/draft")
 async def outreach_draft(
+    request: Request,
     crd_number: str = Body(...),
     template_id: str = Body("intro"),
     target_company: str = Body(""),
@@ -311,9 +405,10 @@ async def outreach_draft(
     sender_title: str = Body(""),
     mutual_connection: Optional[str] = Body(None),
     update_line: Optional[str] = Body(None),
-    save: bool = Body(True, description="Save draft to DB"),
+    save: bool = Body(True),
 ):
     """Generate a context-aware outreach email draft."""
+    _require_auth(request)
     from dataclasses import asdict
     from outreach_engine import generate_draft, save_draft
 
@@ -345,29 +440,34 @@ async def outreach_draft(
 
 @app.get("/api/outreach/history")
 async def outreach_history(
+    request: Request,
     crd_number: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
 ):
     """Get outreach draft history."""
+    _require_auth(request)
     from outreach_engine import get_outreach_history
     drafts = get_outreach_history(crd_number=crd_number, status=status, limit=limit)
     return {"total": len(drafts), "drafts": drafts}
 
 
 @app.get("/api/outreach/stats")
-async def outreach_stats():
+async def outreach_stats(request: Request):
     """Get outreach analytics summary."""
+    _require_auth(request)
     from outreach_engine import get_outreach_stats
     return get_outreach_stats()
 
 
 @app.post("/api/outreach/{draft_id}/status")
 async def update_outreach_status(
+    request: Request,
     draft_id: int,
     status: str = Body(..., embed=True),
 ):
-    """Update outreach draft status (draft, sent, opened, replied, archived)."""
+    """Update outreach draft status."""
+    _require_auth(request)
     from outreach_engine import update_draft_status
     valid = ["draft", "sent", "opened", "replied", "archived"]
     if status not in valid:
@@ -377,33 +477,35 @@ async def update_outreach_status(
 
 
 @app.get("/api/search/options")
-async def filter_options():
+async def filter_options(request: Request):
     """Available filter values for UI dropdowns."""
+    _require_auth(request)
     return get_filter_options()
 
 
-# ── Allocator Search Endpoints (Sprint 3A) ──
+# ── Allocator Search Endpoints ──
 
 @app.get("/api/search/allocators")
 async def search_allocators_endpoint(
-    query: Optional[str] = Query(None, description="Search by allocator name"),
-    entity_type: Optional[str] = Query(None, description="pension|endowment|sovereign_wealth|foundation|family_office|insurance"),
-    aum_min: Optional[float] = Query(None, description="Minimum portfolio value"),
-    aum_max: Optional[float] = Query(None, description="Maximum portfolio value"),
-    state: Optional[str] = Query(None, description="US state (2-letter code)"),
-    country: Optional[str] = Query(None, description="Country (2-letter ISO code)"),
-    gatekeeper: Optional[bool] = Query(None, description="Filter by gatekeeper relationships"),
-    sort_by: str = Query("total_value", description="total_value|name|holdings_count|filing_date|allocator_fit_score"),
+    request: Request,
+    query: Optional[str] = Query(None),
+    entity_type: Optional[str] = Query(None),
+    aum_min: Optional[float] = Query(None),
+    aum_max: Optional[float] = Query(None),
+    state: Optional[str] = Query(None),
+    country: Optional[str] = Query(None),
+    gatekeeper: Optional[bool] = Query(None),
+    sort_by: str = Query("total_value"),
     sort_dir: str = Query("DESC"),
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    # LP Fit Score parameters (Sprint 3B)
-    fit_score: bool = Query(False, description="Enable LP Fit Score computation"),
-    target_sectors: Optional[str] = Query(None, description="Comma-separated target GICS sectors"),
-    fund_size: Optional[float] = Query(None, description="Target fund size in dollars"),
-    strategy_type: Optional[str] = Query(None, description="venture|growth|buyout|infrastructure|real_estate"),
+    fit_score: bool = Query(False),
+    target_sectors: Optional[str] = Query(None),
+    fund_size: Optional[float] = Query(None),
+    strategy_type: Optional[str] = Query(None),
 ):
     """Search allocator-type investors (pension funds, endowments, SWFs)."""
+    _require_auth(request)
     filters = AllocatorFilters(
         query=query, entity_type=entity_type,
         aum_min=aum_min, aum_max=aum_max,
@@ -413,7 +515,6 @@ async def search_allocators_endpoint(
     )
     data = search_allocators(filters)
 
-    # Compute LP Fit Score if requested
     if fit_score:
         from dataclasses import asdict
         fund_ctx = FundContext(
@@ -427,7 +528,6 @@ async def search_allocators_endpoint(
             score = compute_allocator_fit_score(allocator["id"], fund_ctx)
             allocator["allocator_fit_score"] = asdict(score)
 
-        # Re-sort by fit score if requested
         if sort_by == "allocator_fit_score":
             data["results"].sort(
                 key=lambda a: a.get("allocator_fit_score", {}).get("total_score", 0),
@@ -439,14 +539,16 @@ async def search_allocators_endpoint(
 
 @app.get("/api/allocators/{allocator_id}/fit-score")
 async def allocator_fit_score_endpoint(
+    request: Request,
     allocator_id: str,
-    target_sectors: Optional[str] = Query(None, description="Comma-separated target GICS sectors"),
-    fund_size: Optional[float] = Query(None, description="Target fund size in dollars"),
-    min_commitment: Optional[float] = Query(None, description="Minimum LP commitment"),
-    strategy_type: Optional[str] = Query(None, description="venture|growth|buyout|infrastructure|real_estate"),
-    fund_domicile: str = Query("US", description="Fund domicile country"),
+    target_sectors: Optional[str] = Query(None),
+    fund_size: Optional[float] = Query(None),
+    min_commitment: Optional[float] = Query(None),
+    strategy_type: Optional[str] = Query(None),
+    fund_domicile: str = Query("US"),
 ):
     """Compute LP Fit Score for a single allocator."""
+    _require_auth(request)
     from dataclasses import asdict
     fund_ctx = FundContext(
         target_sectors=[s.strip() for s in target_sectors.split(",")] if target_sectors else [],
@@ -461,6 +563,7 @@ async def allocator_fit_score_endpoint(
 
 @app.post("/api/outreach/lp-draft")
 async def lp_outreach_draft(
+    request: Request,
     allocator_id: str = Body(...),
     template_id: str = Body("lp_fund_intro"),
     fund_name: str = Body(""),
@@ -471,12 +574,10 @@ async def lp_outreach_draft(
     fund_thesis: Optional[str] = Body(None),
     sender_name: str = Body(""),
     sender_title: str = Body(""),
-    # Co-investment fields
     deal_company: Optional[str] = Body(None),
     deal_round: Optional[str] = Body(None),
     deal_description: Optional[str] = Body(None),
     deal_rationale: Optional[str] = Body(None),
-    # Capital update fields
     fund_update: Optional[str] = Body(None),
     deployed_amount: Optional[str] = Body(None),
     active_investments: Optional[str] = Body(None),
@@ -484,9 +585,9 @@ async def lp_outreach_draft(
     close_date: Optional[str] = Body(None),
 ):
     """Generate an LP outreach email draft for an allocator."""
+    _require_auth(request)
     from dataclasses import asdict
 
-    # Build fund context from either fund_sector (frontend) or target_sectors
     sectors = target_sectors or ([fund_sector] if fund_sector else [])
 
     fund_context = {
@@ -518,6 +619,7 @@ async def lp_outreach_draft(
 
 @app.get("/api/search/allocators/export")
 async def allocators_export(
+    request: Request,
     query: Optional[str] = Query(None),
     entity_type: Optional[str] = Query(None),
     aum_min: Optional[float] = Query(None),
@@ -528,6 +630,7 @@ async def allocators_export(
     sort_dir: str = Query("DESC"),
 ):
     """Export allocator search results as CSV."""
+    _require_auth(request)
     from fastapi.responses import Response
 
     filters = AllocatorFilters(
@@ -545,8 +648,9 @@ async def allocators_export(
 
 
 @app.get("/api/allocators/{allocator_id}")
-async def allocator_detail(allocator_id: str):
+async def allocator_detail(request: Request, allocator_id: str):
     """Get full allocator profile with top holdings."""
+    _require_auth(request)
     detail = get_allocator_detail(allocator_id)
     if not detail:
         return JSONResponse(status_code=404, content={"error": "Allocator not found"})
@@ -554,20 +658,23 @@ async def allocator_detail(allocator_id: str):
 
 
 @app.get("/api/search/allocators/options")
-async def allocator_filter_options():
+async def allocator_filter_options(request: Request):
     """Available filter values for allocator search UI dropdowns."""
+    _require_auth(request)
     return get_allocator_filter_options()
 
 
-# ── Gatekeeper Endpoints (Sprint 3A) ──
+# ── Gatekeeper Endpoints ──
 
 @app.get("/api/gatekeepers")
 async def gatekeepers_list(
-    state: Optional[str] = Query(None, description="Filter by US state"),
-    min_score: float = Query(30, description="Minimum gatekeeper score (0-100)"),
+    request: Request,
+    state: Optional[str] = Query(None),
+    min_score: float = Query(30),
     limit: int = Query(50, ge=1, le=200),
 ):
-    """Find top gatekeeper firms — pension consultants who can introduce you to allocators."""
+    """Find top gatekeeper firms."""
+    _require_auth(request)
     return {
         "results": search_gatekeepers(state=state, min_score=min_score, limit=limit),
         "total": len(search_gatekeepers(state=state, min_score=min_score, limit=limit)),
@@ -575,16 +682,17 @@ async def gatekeepers_list(
 
 
 @app.get("/api/gatekeepers/{crd_number}")
-async def gatekeeper_score(crd_number: str):
+async def gatekeeper_score(request: Request, crd_number: str):
     """Compute gatekeeper score for a specific firm."""
+    _require_auth(request)
     return compute_gatekeeper_score(crd_number)
 
 
 @app.get("/api/stats")
-async def stats():
+async def stats(request: Request):
     """Database stats."""
+    _require_auth(request)
     import sqlite3
-    from pathlib import Path
 
     db_path = Path(__file__).parent / "purebrain_ir.db"
     conn = sqlite3.connect(str(db_path))
@@ -598,7 +706,6 @@ async def stats():
     ).fetchone()[0]
     conn.close()
 
-    # Allocator stats from holdings DB
     h_db_path = Path(__file__).parent / "holdings_13f.db"
     h_conn = sqlite3.connect(str(h_db_path))
     allocator_count = h_conn.execute(
@@ -620,12 +727,3 @@ async def stats():
         "data_source": "SEC FOIA Form ADV bulk CSV + SEC EDGAR 13F",
         "last_updated": "2026-05-12",
     }
-
-
-@app.get("/")
-async def root():
-    """Serve the search UI."""
-    from fastapi.responses import FileResponse
-    return FileResponse(Path(__file__).parent / "static" / "index.html")
-
-
